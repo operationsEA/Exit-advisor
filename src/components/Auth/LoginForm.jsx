@@ -14,10 +14,14 @@ import {
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import { SiGoogle } from "react-icons/si";
 import { login } from "@/app/auth/actions";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { createBrowserSupabaseClient } from "@/supabase/client";
 
 export default function LoginForm() {
   const supabase = createBrowserSupabaseClient();
+  const router = useRouter();
+  const { refreshAuth } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,8 +46,17 @@ export default function LoginForm() {
       const result = await login(formData);
       if (result?.error) {
         setError(result.error);
+        return;
       }
-      // If no error, redirect will happen via server action
+
+      // After login succeeds, manually refresh auth to update context
+      console.log("Login successful, refreshing auth...");
+      await refreshAuth();
+
+      // Now redirect - AuthContext will be updated
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 100);
     } catch (err) {
       setError(err.message || "Sign in failed. Please try again.");
     } finally {

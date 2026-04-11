@@ -18,14 +18,13 @@ import { useState, useEffect } from "react";
 import { FiBriefcase, FiLogOut, FiUser, FiSettings } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { createBrowserSupabaseClient } from "@/supabase/client";
+import { signout } from "@/app/auth/actions";
 
 export default function Navbar() {
-  const { isAuth, user, isLoading } = useAuth();
+  const { isAuth, user, isLoading, refreshAuth } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const router = useRouter();
-  const supabase = createBrowserSupabaseClient();
 
   // Two-pass rendering: server render shows skeleton, after hydration show real navbar
   useEffect(() => {
@@ -36,9 +35,17 @@ export default function Navbar() {
   const handleMenuClose = () => setAnchorEl(null);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
     setAnchorEl(null);
-    router.push("/");
+    // Call server action to sign out
+    await signout();
+
+    // Refresh auth context to update UI
+    await refreshAuth();
+
+    // Then redirect
+    setTimeout(() => {
+      router.push("/auth/login");
+    }, 100);
   };
 
   // Server render: show skeleton (isMounted = false)

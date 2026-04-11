@@ -9,13 +9,11 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
-import { createBrowserSupabaseClient } from "@/supabase/client";
-import { createUserProfile, getUserProfile } from "@/supabase/auth-helpers";
+import { verifyAndCreateProfile } from "@/app/auth/actions";
 
 export default function AuthCallbackPage() {
   const searchParams = useSearchParams();
   const role = searchParams.get("role");
-  const supabase = createBrowserSupabaseClient();
   const [status, setStatus] = useState("processing"); // processing, success, error
   const [message, setMessage] = useState("Processing your login...");
 
@@ -25,41 +23,14 @@ export default function AuthCallbackPage() {
 
   const handleCallback = async () => {
     try {
-      // Check if hash contains session data
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
+      // Call server action to verify token and create/get profile
+      const result = await verifyAndCreateProfile(role);
 
-      if (sessionError || !session) {
+      if (!result.success) {
         setStatus("error");
-        setMessage("Authentication failed. Please try again.");
+        setMessage(result.error || "Authentication failed. Please try again.");
         return;
       }
-
-      // Check if user profile exists
-      const { user } = session;
-      const existingProfile = await getUserProfile(supabase, user.id);
-
-      if (!existingProfile.success) {
-        // Create new user profile
-        const profileResult = await createUserProfile(
-          supabase,
-          user.id,
-          user.email,
-          user.user_metadata?.full_name || user.email.split("@")[0],
-          role || sessionStorage.getItem("userRole") || "buyer",
-        );
-
-        if (!profileResult.success) {
-          setStatus("error");
-          setMessage("Failed to create profile: " + profileResult.error);
-          return;
-        }
-      }
-
-      // Store role in session
-      sessionStorage.setItem("userRole", role || "buyer");
 
       setStatus("success");
       setMessage("Login successful! Redirecting...");

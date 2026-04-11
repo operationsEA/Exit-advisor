@@ -14,6 +14,7 @@ import {
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import { SiGoogle } from "react-icons/si";
 import { createBrowserSupabaseClient } from "@/supabase/client";
+import { signup } from "@/app/auth/actions";
 
 export default function AuthForm({ selectedRole }) {
   const supabase = createBrowserSupabaseClient();
@@ -39,43 +40,19 @@ export default function AuthForm({ selectedRole }) {
     setError("");
 
     try {
-      // Check if email already exists in Profiles table
-      const { data: existingProfile } = await supabase
-        .from("Profiles")
-        .select("id")
-        .eq("email", email)
-        .single();
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("fullName", fullName);
+      formData.append("role", selectedRole);
 
-      if (existingProfile) {
-        setError("This email is already registered. Please sign in instead.");
+      // Call Server Action
+      const result = await signup(formData);
+
+      if (result?.error) {
+        setError(result.error);
         return;
       }
-
-      // Sign up with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-        role: selectedRole,
-        options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/verify`,
-          data: {
-            full_name: fullName,
-            role: selectedRole,
-          },
-        },
-      });
-
-      if (authError) {
-        setError(authError.message);
-        return;
-      }
-
-      // Store signup info for verification
-      sessionStorage.setItem("userRole", selectedRole);
-      sessionStorage.setItem("userEmail", email);
-
-      // Redirect to verification pending page
-      window.location.href = `/auth/verify-pending`;
     } catch (err) {
       setError(err.message || "Signup failed. Please try again.");
     } finally {
