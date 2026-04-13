@@ -1,0 +1,334 @@
+"use client";
+
+import {
+  Card,
+  CardMedia,
+  CardContent,
+  CardActions,
+  Box,
+  Typography,
+  Chip,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+} from "@mui/material";
+import { FiMoreVertical, FiEdit2, FiTrash2, FiEye } from "react-icons/fi";
+import { useState } from "react";
+import { deleteListing } from "@/app/dashboard/listings/actions";
+
+const STATUS_COLORS = {
+  available: { bg: "#ecfdf5", text: "#065f46", label: "Available" },
+  loi: { bg: "#fef3c7", text: "#92400e", label: "LOI" },
+  sold: { bg: "#fee2e2", text: "#991b1b", label: "Sold" },
+  draft: { bg: "#f3f4f6", text: "#374151", label: "Draft" },
+};
+
+const APPROVAL_COLORS = {
+  approved: { bg: "#dbeafe", text: "#0c4a6e", label: "Approved" },
+  pending: { bg: "#fef08a", text: "#713f12", label: "Pending" },
+};
+
+export default function ListingCard({ listing, onDelete, onRefresh }) {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [deleteDialog, setDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  const statusInfo = STATUS_COLORS[listing.status] || STATUS_COLORS.draft;
+  const approvalInfo = listing.is_approved
+    ? APPROVAL_COLORS.approved
+    : APPROVAL_COLORS.pending;
+
+  const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
+
+  const handleDeleteClick = () => {
+    setDeleteDialog(true);
+    handleMenuClose();
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      setIsDeleting(true);
+      setDeleteError("");
+      const result = await deleteListing(listing.id);
+
+      if (result?.error) {
+        setDeleteError(result.error);
+      } else {
+        setDeleteDialog(false);
+        onDelete && onDelete(listing.id);
+        onRefresh && onRefresh();
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const priceDisplay =
+    listing.min_price && listing.max_price
+      ? `$${(listing.min_price / 1000).toFixed(0)}K - $${(listing.max_price / 1000).toFixed(0)}K`
+      : listing.min_price
+        ? `$${(listing.min_price / 1000).toFixed(0)}K`
+        : "Price TBD";
+
+  const truncateDescription = (text, maxLength = 80) => {
+    return text && text.length > maxLength
+      ? text.substring(0, maxLength) + "..."
+      : text;
+  };
+
+  return (
+    <>
+      <Card
+        sx={{
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          borderRadius: 2,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          transition: "all 0.3s ease",
+          "&:hover": {
+            boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+            transform: "translateY(-4px)",
+          },
+        }}
+      >
+        {/* Image Section */}
+        <Box sx={{ position: "relative", overflow: "hidden", height: 200 }}>
+          <CardMedia
+            component="div"
+            sx={{
+              height: "100%",
+              backgroundImage: listing.image_url
+                ? `url(${listing.image_url})`
+                : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundColor: "#e5e7eb",
+            }}
+          />
+
+          {/* Status Badge */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 12,
+              left: 12,
+              display: "flex",
+              gap: 1,
+              flexWrap: "wrap",
+            }}
+          >
+            <Chip
+              size="small"
+              label={statusInfo.label}
+              sx={{
+                backgroundColor: statusInfo.bg,
+                color: statusInfo.text,
+                fontWeight: 600,
+                fontSize: "0.75rem",
+              }}
+            />
+            {listing.is_featured && (
+              <Chip
+                size="small"
+                label="Featured"
+                sx={{
+                  backgroundColor: "#fef08a",
+                  color: "#713f12",
+                  fontWeight: 600,
+                  fontSize: "0.75rem",
+                }}
+              />
+            )}
+          </Box>
+
+          {/* Approval Badge */}
+          <Box sx={{ position: "absolute", top: 12, right: 12 }}>
+            <Chip
+              size="small"
+              label={approvalInfo.label}
+              sx={{
+                backgroundColor: approvalInfo.bg,
+                color: approvalInfo.text,
+                fontWeight: 600,
+                fontSize: "0.75rem",
+              }}
+            />
+          </Box>
+
+          {/* Menu Button */}
+          <Box sx={{ position: "absolute", top: 8, right: 45 }}>
+            <IconButton
+              size="small"
+              onClick={handleMenuOpen}
+              sx={{
+                backgroundColor: "rgba(255,255,255,0.9)",
+                "&:hover": { backgroundColor: "#ffffff" },
+              }}
+            >
+              <FiMoreVertical size={18} />
+            </IconButton>
+          </Box>
+        </Box>
+
+        {/* Content Section */}
+        <CardContent sx={{ flexGrow: 1, pb: 1 }}>
+          {/* Category */}
+          <Typography
+            variant="caption"
+            sx={{
+              color: "#0884ff",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+            }}
+          >
+            {listing.business_category || "Uncategorized"}
+          </Typography>
+
+          {/* Title */}
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 700,
+              color: "#111827",
+              mb: 1,
+              mt: 0.5,
+              fontSize: "1rem",
+              lineHeight: 1.3,
+            }}
+          >
+            {listing.title}
+          </Typography>
+
+          {/* Description */}
+          <Typography
+            variant="body2"
+            sx={{
+              color: "#6b7280",
+              mb: 1.5,
+              lineHeight: 1.4,
+            }}
+          >
+            {truncateDescription(listing.description)}
+          </Typography>
+
+          {/* Price */}
+          <Typography
+            sx={{
+              fontSize: "1.125rem",
+              fontWeight: 700,
+              color: "#0884ff",
+            }}
+          >
+            {priceDisplay}
+          </Typography>
+
+          {/* Created Date */}
+          <Typography
+            variant="caption"
+            sx={{
+              color: "#9ca3af",
+              display: "block",
+              mt: 1,
+            }}
+          >
+            Listed {new Date(listing.created_at).toLocaleDateString()}
+          </Typography>
+        </CardContent>
+
+        {/* Actions Section */}
+        <CardActions
+          sx={{
+            padding: "12px 16px",
+            borderTop: "1px solid #e5e7eb",
+            display: "flex",
+            gap: 1,
+          }}
+        >
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<FiEye size={16} />}
+            sx={{
+              flex: 1,
+              textTransform: "none",
+              color: "#0884ff",
+              borderColor: "#0884ff",
+              "&:hover": { borderColor: "#0670d6", color: "#0670d6" },
+            }}
+          >
+            View
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<FiEdit2 size={16} />}
+            sx={{
+              flex: 1,
+              textTransform: "none",
+              color: "#0884ff",
+              borderColor: "#0884ff",
+              "&:hover": { borderColor: "#0670d6", color: "#0670d6" },
+            }}
+          >
+            Edit
+          </Button>
+        </CardActions>
+      </Card>
+
+      {/* Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem>
+          <FiEdit2 size={16} style={{ marginRight: 8 }} />
+          Edit
+        </MenuItem>
+        <MenuItem onClick={handleDeleteClick}>
+          <FiTrash2 size={16} style={{ marginRight: 8, color: "#ef4444" }} />
+          <span style={{ color: "#ef4444" }}>Delete</span>
+        </MenuItem>
+      </Menu>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialog} onClose={() => setDeleteDialog(false)}>
+        <DialogTitle>Delete Listing?</DialogTitle>
+        <DialogContent>
+          {deleteError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {deleteError}
+            </Alert>
+          )}
+          <Typography>
+            Are you sure you want to delete "{listing.title}"? This action
+            cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialog(false)} disabled={isDeleting}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            variant="contained"
+            color="error"
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}

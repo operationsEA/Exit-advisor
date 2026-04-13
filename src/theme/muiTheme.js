@@ -182,6 +182,12 @@ const muiTheme = createTheme({
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: colors.neutral[400],
           },
+          "& input:focus": {
+            boxShadow: "none",
+          },
+          "& textarea:focus": {
+            boxShadow: "none",
+          },
         },
       },
     },

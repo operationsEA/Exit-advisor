@@ -137,13 +137,27 @@ export async function verifyAndCreateProfile(role) {
       };
     }
 
+    // update auth user metadata with role
+    const { error: updateError } = await supabase.auth.updateUser({
+      data: {
+        role: role || "buyer",
+      },
+    });
+
+    if (updateError) {
+      return {
+        success: false,
+        error: "Failed to update user metadata: " + updateError.message,
+      };
+    }
+
     // Create new profile for first-time users
     const userRole = role || "buyer";
-    const { error: insertError } = await supabase.from("Profiles").insert([
+    const { error: insertError } = await supabase.from("profiles").insert([
       {
         id: user.id,
         email: user.email,
-        name: user.user_metadata?.full_name || user.email.split("@")[0],
+        full_name: user.user_metadata?.full_name || user.email.split("@")[0],
         role: userRole,
         avatar_url: user.user_metadata?.avatar_url || null,
         created_at: new Date(),
