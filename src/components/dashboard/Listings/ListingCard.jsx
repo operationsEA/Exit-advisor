@@ -21,7 +21,8 @@ import {
 import { FiMoreVertical, FiEdit2, FiTrash2, FiEye } from "react-icons/fi";
 import { MdBrokenImage } from "react-icons/md";
 import { useState } from "react";
-import { deleteListing } from "@/app/dashboard/listings/actions";
+import { deleteListing, updateListing } from "@/app/dashboard/listings/actions";
+import EditListingSlide from "./EditListingSlide";
 
 const STATUS_COLORS = {
   available: { bg: "#ecfdf5", text: "#065f46", label: "Available" },
@@ -40,6 +41,8 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [slideOpen, setSlideOpen] = useState(false);
+  const [slideMode, setSlideMode] = useState("view"); // 'view' or 'edit'
 
   const statusInfo = STATUS_COLORS[listing.status] || STATUS_COLORS.draft;
   const approvalInfo = listing.is_approved
@@ -48,6 +51,25 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
 
   const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
+
+  const handleViewClick = () => {
+    setSlideMode("view");
+    setSlideOpen(true);
+  };
+
+  const handleEditClick = () => {
+    setSlideMode("edit");
+    setSlideOpen(true);
+    handleMenuClose();
+  };
+
+  const handleSaveListing = async (updatedListing) => {
+    const result = await updateListing(listing.id, updatedListing);
+    if (result?.error) {
+      throw new Error(result.error);
+    }
+    onRefresh && onRefresh();
+  };
 
   const handleDeleteClick = () => {
     setDeleteDialog(true);
@@ -272,6 +294,7 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
             size="small"
             variant="outlined"
             startIcon={<FiEye size={16} />}
+            onClick={handleViewClick}
             sx={{
               flex: 1,
               textTransform: "none",
@@ -286,6 +309,7 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
             size="small"
             variant="outlined"
             startIcon={<FiEdit2 size={16} />}
+            onClick={handleEditClick}
             sx={{
               flex: 1,
               textTransform: "none",
@@ -343,6 +367,15 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Edit Listing Slide */}
+      <EditListingSlide
+        open={slideOpen}
+        onClose={() => setSlideOpen(false)}
+        listing={listing}
+        mode={slideMode}
+        onSave={handleSaveListing}
+      />
     </>
   );
 }
