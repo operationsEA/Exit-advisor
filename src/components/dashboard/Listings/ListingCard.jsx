@@ -19,6 +19,7 @@ import {
   Alert,
 } from "@mui/material";
 import { FiMoreVertical, FiEdit2, FiTrash2, FiEye } from "react-icons/fi";
+import { MdBrokenImage } from "react-icons/md";
 import { useState } from "react";
 import { deleteListing } from "@/app/dashboard/listings/actions";
 
@@ -102,18 +103,29 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
       >
         {/* Image Section */}
         <Box sx={{ position: "relative", overflow: "hidden", height: 200 }}>
-          <CardMedia
-            component="div"
-            sx={{
-              height: "100%",
-              backgroundImage: listing.image_url
-                ? `url(${listing.image_url})`
-                : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundColor: "#e5e7eb",
-            }}
-          />
+          {listing.image_url ? (
+            <CardMedia
+              component="div"
+              sx={{
+                height: "100%",
+                backgroundImage: `url(${listing.image_url})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            />
+          ) : (
+            <Box
+              sx={{
+                height: "100%",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <MdBrokenImage size={60} color="rgba(255, 255, 255, 0.6)" />
+            </Box>
+          )}
 
           {/* Status Badge */}
           <Box
@@ -163,24 +175,24 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
               }}
             />
           </Box>
+        </Box>
 
-          {/* Menu Button */}
-          <Box sx={{ position: "absolute", top: 8, right: 45 }}>
+        {/* Content Section */}
+        <CardContent sx={{ flexGrow: 1, pb: 1, position: "relative" }}>
+          {/* Menu Button - Top Right */}
+          <Box sx={{ position: "absolute", top: 24, right: 8 }}>
             <IconButton
               size="small"
               onClick={handleMenuOpen}
               sx={{
-                backgroundColor: "rgba(255,255,255,0.9)",
-                "&:hover": { backgroundColor: "#ffffff" },
+                backgroundColor: "rgba(8, 132, 255, 0.1)",
+                color: "#0884ff",
+                "&:hover": { backgroundColor: "rgba(8, 132, 255, 0.2)" },
               }}
             >
               <FiMoreVertical size={18} />
             </IconButton>
           </Box>
-        </Box>
-
-        {/* Content Section */}
-        <CardContent sx={{ flexGrow: 1, pb: 1 }}>
           {/* Category */}
           <Typography
             variant="caption"
@@ -189,6 +201,7 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
               fontWeight: 600,
               textTransform: "uppercase",
               letterSpacing: "0.5px",
+              paddingRight: 4,
             }}
           >
             {listing.business_category || "Uncategorized"}
@@ -204,6 +217,7 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
               mt: 0.5,
               fontSize: "1rem",
               lineHeight: 1.3,
+              paddingRight: 4,
             }}
           >
             {listing.title}

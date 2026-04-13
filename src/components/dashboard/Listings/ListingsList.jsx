@@ -12,6 +12,7 @@ import {
 import { FiRefreshCw } from "react-icons/fi";
 import { getListings } from "@/app/dashboard/listings/actions";
 import ListingCard from "./ListingCard";
+import Loading from "@/components/Shared/Loading";
 
 export default function ListingsList({ refreshTrigger = 0 }) {
   const [listings, setListings] = useState([]);
@@ -48,18 +49,7 @@ export default function ListingsList({ refreshTrigger = 0 }) {
   };
 
   if (isLoading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: 300,
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <Loading />;
   }
 
   if (error) {
@@ -116,18 +106,6 @@ export default function ListingsList({ refreshTrigger = 0 }) {
         <Typography variant="h6" sx={{ color: "#111827", fontWeight: 600 }}>
           Your Listings ({listings.length})
         </Typography>
-        <Button
-          size="small"
-          startIcon={<FiRefreshCw size={16} />}
-          onClick={fetchListings}
-          sx={{
-            textTransform: "none",
-            color: "#0884ff",
-            "&:hover": { backgroundColor: "rgba(8, 132, 255, 0.1)" },
-          }}
-        >
-          Refresh
-        </Button>
       </Box>
 
       {/* Grid of Listing Cards */}
