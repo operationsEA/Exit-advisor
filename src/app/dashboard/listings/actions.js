@@ -67,6 +67,7 @@ export async function getListings() {
         `
         id,
         title,
+        user_id,
         description,
         business_category,
         status,
