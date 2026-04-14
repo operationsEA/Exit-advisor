@@ -10,20 +10,23 @@ import {
   Alert,
 } from "@mui/material";
 import { verifyAndCreateProfile } from "@/app/auth/actions";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function AuthCallbackPage() {
   const searchParams = useSearchParams();
+  const { refreshAuth } = useAuth();
   const role = searchParams.get("role");
   const [status, setStatus] = useState("processing"); // processing, success, error
   const [message, setMessage] = useState("Processing your login...");
 
   useEffect(() => {
     handleCallback();
-  }, []);
+  }, [role]);
 
   const handleCallback = async () => {
     try {
       // Call server action to verify token and create/get profile
+      await refreshAuth(); // Ensure we have the latest session info
       const result = await verifyAndCreateProfile(role);
 
       if (!result.success) {

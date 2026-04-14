@@ -11,7 +11,7 @@ export const createUserProfile = async (
 ) => {
   try {
     const { data, error } = await supabase
-      .from("Profiles")
+      .from("profiles")
       .insert([
         {
           id: userId,
@@ -42,7 +42,7 @@ export const createUserProfile = async (
 export const getUserProfile = async (supabase, userId) => {
   try {
     const { data, error } = await supabase
-      .from("Profiles")
+      .from("profiles")
       .select("*")
       .eq("id", userId)
       .single();
@@ -60,7 +60,7 @@ export const getUserProfile = async (supabase, userId) => {
 export const updateUserProfile = async (supabase, userId, updates) => {
   try {
     const { data, error } = await supabase
-      .from("Profiles")
+      .from("profiles")
       .update(updates)
       .eq("id", userId)
       .select();

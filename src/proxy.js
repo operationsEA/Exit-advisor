@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
 // Protected routes that require authentication
-const protectedRoutes = ["/dashboard", "/profile", "/listings"];
+const protectedRoutes = ["/dashboard"];
 
 // Auth routes that only unauthenticated users can access
 const authRoutes = [

@@ -15,7 +15,7 @@ import {
   Typography,
   Divider,
 } from "@mui/material";
-import { FiMenu, FiX, FiHome, FiUser } from "react-icons/fi";
+import { FiMenu, FiX, FiHome, FiUser, FiBriefcase } from "react-icons/fi";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,6 +34,7 @@ export default function Sidebar() {
 
   const menuItems = [
     { icon: FiHome, label: "Dashboard", href: "/dashboard" },
+    { icon: FiBriefcase, label: "Listings", href: "/dashboard/listings" },
     { icon: FiUser, label: "Profile", href: "/dashboard/profile" },
   ];
 

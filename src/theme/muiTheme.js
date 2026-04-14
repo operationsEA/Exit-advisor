@@ -122,7 +122,7 @@ const muiTheme = createTheme({
       },
       styleOverrides: {
         root: {
-          borderRadius: "0.5rem",
+          borderRadius: "100px",
           fontWeight: 600,
           textTransform: "none",
           padding: "0.625rem 1.25rem",
@@ -182,13 +182,19 @@ const muiTheme = createTheme({
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: colors.neutral[400],
           },
+          "& input:focus": {
+            boxShadow: "none",
+          },
+          "& textarea:focus": {
+            boxShadow: "none",
+          },
         },
       },
     },
     MuiChip: {
       styleOverrides: {
         root: {
-          borderRadius: "0.375rem",
+          borderRadius: "100px",
           fontWeight: 500,
         },
       },

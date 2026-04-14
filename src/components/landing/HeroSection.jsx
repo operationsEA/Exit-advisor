@@ -1,7 +1,6 @@
-"use client";
-
 import { Button } from "@mui/material";
 import Link from "next/link";
+import SearchBar from "./SearchBar";
 
 export default function HeroSection() {
   return (
@@ -18,34 +17,41 @@ export default function HeroSection() {
           deals faster.
         </p>
 
+        {/* Search Bar Component */}
+        <SearchBar />
+
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Button
-            variant="contained"
-            size="large"
-            sx={{
-              backgroundColor: "#0884ff",
-              textTransform: "none",
-              fontSize: "1.1rem",
-              padding: "12px 32px",
-              "&:hover": { backgroundColor: "#0670d6" },
-            }}
-          >
-            Browse Businesses
-          </Button>
-          <Button
-            variant="outlined"
-            size="large"
-            sx={{
-              borderColor: "#0884ff",
-              color: "#0884ff",
-              textTransform: "none",
-              fontSize: "1.1rem",
-              padding: "12px 32px",
-              "&:hover": { backgroundColor: "rgba(8, 132, 255, 0.05)" },
-            }}
-          >
-            List Your Business
-          </Button>
+          <Link href="/business-for-sale" style={{ textDecoration: "none" }}>
+            <Button
+              variant="contained"
+              size="large"
+              sx={{
+                backgroundColor: "#0884ff",
+                textTransform: "none",
+                fontSize: "1.1rem",
+                padding: "12px 32px",
+                "&:hover": { backgroundColor: "#0670d6" },
+              }}
+            >
+              Browse Businesses
+            </Button>
+          </Link>
+          <Link href="/list-your-business" style={{ textDecoration: "none" }}>
+            <Button
+              variant="outlined"
+              size="large"
+              sx={{
+                borderColor: "#0884ff",
+                color: "#0884ff",
+                textTransform: "none",
+                fontSize: "1.1rem",
+                padding: "12px 32px",
+                "&:hover": { backgroundColor: "rgba(8, 132, 255, 0.05)" },
+              }}
+            >
+              List Your Business
+            </Button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 pt-12 border-t border-neutral-200">
