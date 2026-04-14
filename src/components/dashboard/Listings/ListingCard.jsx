@@ -83,8 +83,13 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
       setSlideMode("view");
       setSlideOpen(true);
     } else {
-      // Otherwise, redirect to public listing page
-      router.push(`/listings/${listing.id}`);
+      // Otherwise, redirect to public listing detail page
+      // Create slug from title
+      const slug = listing.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      router.push(`/business-for-sale/${slug}/${listing.id}`);
     }
   };
 

@@ -185,3 +185,87 @@ export async function getFilterOptions() {
     states: [],
   };
 }
+
+/**
+ * Get detailed information for a single listing by ID
+ * Only returns approved listings
+ */
+export async function getListingDetail(listingId) {
+  try {
+    const supabase = await createServerSupabaseClient();
+
+    const { data: listing, error } = await supabase
+      .from("listings")
+      .select(
+        `
+        id,
+        title,
+        description,
+        business_category,
+        min_price,
+        max_price,
+        min_revenue,
+        max_revenue,
+        min_cashflow,
+        max_cashflow,
+        country,
+        state,
+        is_sba_approved,
+        has_seller_financing,
+        is_distressed,
+        is_remote,
+        is_featured,
+        status,
+        is_approved,
+        image_url,
+        ffe,
+        created_at,
+        updated_at,
+        user_id,
+        profiles:user_id(id, full_name, email, role, avatar_url)
+      `,
+      )
+      .eq("id", listingId)
+      .eq("is_approved", true)
+      .neq("status", "draft")
+      .single();
+
+    if (error) {
+      console.error("Error fetching listing detail:", error);
+      return { error: "Listing not found", success: false };
+    }
+
+    return { success: true, data: listing };
+  } catch (err) {
+    console.error("Error in getListingDetail:", err);
+    return { error: "Failed to fetch listing detail", success: false };
+  }
+}
+
+/**
+ * Get all documents for a listing
+ */
+export async function getListingDocumentsPublic(listingId) {
+  try {
+    const supabase = await createServerSupabaseClient();
+
+    const { data: documents, error } = await supabase
+      .from("listing_documents")
+      .select("*")
+      .eq("listing_id", listingId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching documents:", error);
+      return {
+        error: error.message || "Failed to fetch documents",
+        success: false,
+      };
+    }
+
+    return { success: true, data: documents || [] };
+  } catch (err) {
+    console.error("Error in getListingDocumentsPublic:", err);
+    return { error: "Failed to fetch documents", success: false };
+  }
+}
