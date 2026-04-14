@@ -240,109 +240,115 @@ export default function Navbar() {
             ))}
 
             {/* Auth state dependent content */}
-            {!isAuth ? renderAuthButtons() : <UserMenu />}
+            {!isAuth ? (
+              renderAuthButtons()
+            ) : (
+              <>
+                <Box
+                  onClick={handleMenuOpen}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    px: 2,
+                    py: 1,
+                    backgroundColor: "rgba(8, 132, 255, 0.05)",
+                    border: "1px solid rgba(8, 132, 255, 0.1)",
+                    borderRadius: 2,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      backgroundColor: "rgba(8, 132, 255, 0.1)",
+                      border: "1px solid rgba(8, 132, 255, 0.2)",
+                    },
+                  }}
+                >
+                  <Avatar
+                    sx={{
+                      bgcolor: "#0884ff",
+                      width: 40,
+                      height: 40,
+                      fontSize: "1rem",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {user?.email?.charAt(0).toUpperCase()}
+                  </Avatar>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      sx={{
+                        fontSize: "0.9rem",
+                        fontWeight: 600,
+                        color: "#111827",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {user?.user_metadata?.full_name ||
+                        user?.email?.split("@")[0]}
+                    </Typography>
+                    {user?.user_metadata?.role && (
+                      <Typography
+                        sx={{
+                          fontSize: "0.75rem",
+                          color: "#0884ff",
+                          fontWeight: 600,
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {user.user_metadata.role} Account
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+
+                {/* Dropdown menu */}
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleMenuClose}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                  }}
+                  PaperProps={{
+                    sx: {
+                      minWidth: 280,
+                      mt: 1,
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                    },
+                  }}
+                >
+                  {/* Menu items from config */}
+                  {renderMenuItems()}
+
+                  <Divider sx={{ my: 1 }} />
+
+                  {/* Logout button */}
+                  <MenuItem
+                    onClick={handleLogout}
+                    sx={{
+                      color: "#d32f2f",
+                      fontSize: "0.9rem",
+                      "&:hover": {
+                        backgroundColor: "rgba(211, 47, 47, 0.05)",
+                      },
+                    }}
+                  >
+                    <FiLogOut style={{ marginRight: "12px" }} size={18} />
+                    Logout
+                  </MenuItem>
+                </Menu>
+              </>
+            )}
           </Box>
         </Toolbar>
       </Box>
     </AppBar>
   );
-
-  // User menu component for authenticated users
-  function UserMenu() {
-    return (
-      <>
-        <Box
-          onClick={handleMenuOpen}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5,
-            px: 2,
-            py: 1,
-            backgroundColor: "rgba(8, 132, 255, 0.05)",
-            border: "1px solid rgba(8, 132, 255, 0.1)",
-            borderRadius: 2,
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-            "&:hover": {
-              backgroundColor: "rgba(8, 132, 255, 0.1)",
-              border: "1px solid rgba(8, 132, 255, 0.2)",
-            },
-          }}
-        >
-          <Avatar
-            sx={{
-              bgcolor: "#0884ff",
-              width: 40,
-              height: 40,
-              fontSize: "1rem",
-              fontWeight: "bold",
-            }}
-          >
-            {user?.email?.charAt(0).toUpperCase()}
-          </Avatar>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography
-              sx={{
-                fontSize: "0.9rem",
-                fontWeight: 600,
-                color: "#111827",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {user?.user_metadata?.full_name || user?.email?.split("@")[0]}
-            </Typography>
-            {user?.user_metadata?.role && (
-              <Typography
-                sx={{
-                  fontSize: "0.75rem",
-                  color: "#0884ff",
-                  fontWeight: 600,
-                  textTransform: "capitalize",
-                }}
-              >
-                {user.user_metadata.role} Account
-              </Typography>
-            )}
-          </Box>
-        </Box>
-
-        {/* Dropdown menu */}
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
-          PaperProps={{
-            sx: {
-              minWidth: 280,
-              mt: 1,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-            },
-          }}
-        >
-          <Divider sx={{ my: 1 }} />
-
-          {/* Menu items from config */}
-          {renderMenuItems()}
-
-          <Divider sx={{ my: 1 }} />
-
-          {/* Logout button */}
-          <MenuItem
-            onClick={handleLogout}
-            sx={{
-              color: "#d32f2f",
-              fontSize: "0.9rem",
-              "&:hover": { backgroundColor: "rgba(211, 47, 47, 0.05)" },
-            }}
-          >
-            <FiLogOut style={{ marginRight: "12px" }} size={18} />
-            Logout
-          </MenuItem>
-        </Menu>
-      </>
-    );
-  }
 }

@@ -14,7 +14,7 @@ export async function signup(formData) {
 
   // Check if email exists in Profiles table
   const { data: existingProfile } = await supabase
-    .from("Profiles")
+    .from("profiles")
     .select("id")
     .eq("email", email)
     .single();
@@ -65,7 +65,7 @@ export async function login(formData) {
   const { data: userData } = await supabase.auth.getUser();
   if (userData.user) {
     const { data: profile } = await supabase
-      .from("Profiles")
+      .from("profiles")
       .select("role")
       .eq("id", userData.user.id)
       .single();
@@ -114,7 +114,7 @@ export async function verifyAndCreateProfile(role) {
 
     // Check if user profile already exists
     const { data: existingProfile, error: profileError } = await supabase
-      .from("Profiles")
+      .from("profiles")
       .select("id, role")
       .eq("id", user.id)
       .single();

@@ -59,16 +59,20 @@ export default function EditListingSlide({
   listing,
   mode = "edit",
   onSave,
+  isAdmin = false,
+  onApprovalStatusChange,
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [approvingStatus, setApprovingStatus] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [listingImage, setListingImage] = useState(listing?.image_url || null);
   const [documents, setDocuments] = useState([]);
   const [deletingDocId, setDeletingDocId] = useState(null);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [isApproved, setIsApproved] = useState(listing?.is_approved || false);
 
   const isViewMode = mode === "view";
 
@@ -244,7 +248,29 @@ export default function EditListingSlide({
     setListingImage(listing?.image_url || null);
     setSuccessMessage("");
     setErrorMessage("");
+    setIsApproved(listing?.is_approved || false);
     onClose();
+  };
+
+  const handleApprovalToggle = async () => {
+    if (!isAdmin) return;
+
+    setApprovingStatus(true);
+    try {
+      const newApprovalStatus = !isApproved;
+      if (onApprovalStatusChange) {
+        await onApprovalStatusChange(listing.id, newApprovalStatus);
+      }
+      setIsApproved(newApprovalStatus);
+      setSuccessMessage(
+        `Listing ${newApprovalStatus ? "approved" : "rejected"} successfully!`,
+      );
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      setErrorMessage(error.message || "Failed to update approval status");
+    } finally {
+      setApprovingStatus(false);
+    }
   };
 
   return (
@@ -278,9 +304,18 @@ export default function EditListingSlide({
             {isViewMode ? "View details" : "Update your listing information"}
           </Typography>
         </Box>
-        <IconButton onClick={handleClose} size="small">
-          <FiX size={20} />
-        </IconButton>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Chip
+            label={isApproved ? "✓ Approved" : "⊗ Pending"}
+            size="small"
+            color={isApproved ? "success" : "warning"}
+            variant="outlined"
+            sx={{ fontWeight: 600 }}
+          />
+          <IconButton onClick={handleClose} size="small">
+            <FiX size={20} />
+          </IconButton>
+        </Box>
       </Box>
 
       {/* Content */}
@@ -339,6 +374,7 @@ export default function EditListingSlide({
             <Button
               component="label"
               variant="outlined"
+              size="small"
               startIcon={
                 uploadingImage ? (
                   <CircularProgress size={20} />
@@ -811,6 +847,7 @@ export default function EditListingSlide({
             <Button
               component="label"
               variant="outlined"
+              size="small"
               startIcon={
                 uploadingFile ? (
                   <CircularProgress size={20} />
@@ -845,32 +882,61 @@ export default function EditListingSlide({
           borderTop: "1px solid #e5e7eb",
           display: "flex",
           gap: 2,
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
           backgroundColor: "#ffffff",
         }}
       >
-        <Button
-          onClick={handleClose}
-          variant="outlined"
-          sx={{ textTransform: "none" }}
-        >
-          {isViewMode ? "Close" : "Cancel"}
-        </Button>
-        {!isViewMode && (
+        <Box>
+          {isViewMode && isAdmin && (
+            <Button
+              onClick={handleApprovalToggle}
+              variant={isApproved ? "contained" : "outlined"}
+              color={isApproved ? "error" : "success"}
+              disabled={approvingStatus}
+              size="small"
+              sx={{
+                textTransform: "none",
+              }}
+            >
+              {approvingStatus ? (
+                <>
+                  <CircularProgress size={16} sx={{ mr: 1 }} />
+                  {isApproved ? "Rejecting..." : "Approving..."}
+                </>
+              ) : isApproved ? (
+                "⊗ Reject Listing"
+              ) : (
+                "⊗ ✓ Approve Listing"
+              )}
+            </Button>
+          )}
+        </Box>
+        <Box sx={{ display: "flex", gap: 2 }}>
           <Button
-            onClick={handleSubmit(onSubmit)}
-            variant="contained"
-            disabled={isLoading}
-            sx={{
-              backgroundColor: "#0884ff",
-              color: "white",
-              textTransform: "none",
-              "&:hover": { backgroundColor: "#0670d6" },
-            }}
+            onClick={handleClose}
+            size="small"
+            variant="outlined"
+            sx={{ textTransform: "none" }}
           >
-            {isLoading ? "Saving..." : "Save Changes"}
+            {isViewMode ? "Close" : "Cancel"}
           </Button>
-        )}
+          {!isViewMode && (
+            <Button
+              onClick={handleSubmit(onSubmit)}
+              variant="contained"
+              size="small"
+              disabled={isLoading}
+              sx={{
+                backgroundColor: "#0884ff",
+                color: "white",
+                textTransform: "none",
+                "&:hover": { backgroundColor: "#0670d6" },
+              }}
+            >
+              {isLoading ? "Saving..." : "Save Changes"}
+            </Button>
+          )}
+        </Box>
       </Box>
     </Drawer>
   );

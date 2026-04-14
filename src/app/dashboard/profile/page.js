@@ -31,7 +31,7 @@ export default function ProfilePage() {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from("Profiles")
+        .from("profiles")
         .update({ full_name: profile.fullName })
         .eq("email", profile.email);
 

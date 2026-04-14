@@ -424,6 +424,148 @@ export async function deleteListingDocument(documentId, fileUrl) {
   }
 }
 
+export async function getAllListingsWithUsers() {
+  try {
+    const supabase = await createServerSupabaseClient();
+
+    // Get current user to verify they're an admin
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { error: "Not authenticated" };
+    }
+
+    // TODO: Add admin role check if needed
+    if (user?.user_metadata?.role !== "admin") {
+      return { error: "Unauthorized - Admin access required" };
+    }
+
+    // Fetch all listings with user details (excluding draft status)
+    const { data: listings, error } = await supabase
+      .from("listings")
+      .select(
+        `
+        id,
+        title,
+        description,
+        business_category,
+        status,
+        min_price,
+        max_price,
+        min_revenue,
+        max_revenue,
+        country,
+        state,
+        is_sba_approved,
+        has_seller_financing,
+        is_distressed,
+        is_remote,
+        is_featured,
+        is_approved,
+        image_url,
+        created_at,
+        updated_at,
+        user_id,
+        profiles:user_id (
+          id,
+          email,
+          full_name,
+          role,
+          avatar_url
+        )
+      `,
+      )
+      .neq("status", "draft")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching all listings:", error);
+      return { error: error.message || "Failed to fetch listings" };
+    }
+
+    return { success: true, data: listings || [] };
+  } catch (error) {
+    console.error("Error in getAllListingsWithUsers:", error);
+    return { error: error.message || "Failed to fetch listings" };
+  }
+}
+
+export async function updateListingApprovalStatus(listingId, isApproved) {
+  try {
+    const supabase = await createServerSupabaseClient();
+
+    // Get current user to verify they're an admin
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { error: "Not authenticated" };
+    }
+
+    const { data, error } = await supabase
+      .from("listings")
+      .update({
+        is_approved: isApproved,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", listingId)
+      .select()
+      .single();
+
+    if (error) {
+      return { error: error.message || "Failed to update listing approval" };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error updating listing approval:", error);
+    return {
+      error: error.message || "Failed to update listing approval",
+    };
+  }
+}
+
+export async function adminUpdateListingStatus(listingId, status) {
+  try {
+    const supabase = await createServerSupabaseClient();
+
+    // Get current user to verify they're an admin
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { error: "Not authenticated" };
+    }
+
+    if (user?.user_metadata?.role !== "admin") {
+      return { error: "Unauthorized - Admin access required" };
+    }
+
+    const { data, error } = await supabase
+      .from("listings")
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", listingId)
+      .select()
+      .single();
+
+    if (error) {
+      return { error: error.message || "Failed to update listing status" };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error updating listing status:", error);
+    return { error: error.message || "Failed to update listing status" };
+  }
+}
+
 export async function deleteListing(listingId) {
   try {
     const supabase = await createServerSupabaseClient();

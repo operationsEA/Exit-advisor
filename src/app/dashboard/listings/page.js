@@ -1,39 +1,28 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Container, Box, Typography } from "@mui/material";
-import NewListingDialog from "@/components/dashboard/Listings/NewListingDialog";
-import ListingsList from "@/components/dashboard/Listings/ListingsList";
+import AdminListingsPage from "@/components/dashboard/Listings/AdminListingsPage";
+import SellerListingPage from "@/components/dashboard/Listings/SellerListingPage";
+import Loading from "@/components/Shared/Loading";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ListingsPage() {
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { user, isLoading } = useAuth();
 
-  const handleListingCreated = useCallback((newListing) => {
-    // Trigger a refresh of the listings list
-    setRefreshTrigger((prev) => prev + 1);
-  }, []);
+  const role = user?.user_metadata?.role;
 
-  return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Header Section */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 4,
-        }}
-      >
-        <Typography variant="h4" sx={{ fontWeight: "bold", color: "#111827" }}>
-          My Listings
-        </Typography>
-        <NewListingDialog onListingCreated={handleListingCreated} />
-      </Box>
+  console.log("User role:", user);
 
-      {/* Listings Content */}
-      <Box sx={{ mt: 4 }}>
-        <ListingsList refreshTrigger={refreshTrigger} />
-      </Box>
-    </Container>
-  );
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (["seller", "broker"].includes(role)) {
+    return <SellerListingPage />;
+  }
+
+  if (role === "admin") {
+    return <AdminListingsPage />;
+  }
+
+  return <div>Unauthorized</div>;
 }
