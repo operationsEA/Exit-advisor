@@ -21,7 +21,7 @@ import {
   Slider,
 } from "@mui/material";
 import { FiSearch } from "react-icons/fi";
-import { getPublicListings, getFilterOptions } from "@/app/listings/actions";
+import { getPublicListings } from "@/app/listings/actions";
 import ListingCard from "@/components/dashboard/Listings/ListingCard";
 import CATEGORIES from "@/data/categories.json";
 import COUNTRIES_LIST from "@/data/countries.json";

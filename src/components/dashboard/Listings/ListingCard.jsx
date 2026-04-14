@@ -18,7 +18,15 @@ import {
   DialogActions,
   Alert,
 } from "@mui/material";
-import { FiMoreVertical, FiEdit2, FiTrash2, FiEye } from "react-icons/fi";
+import {
+  FiMoreVertical,
+  FiEdit2,
+  FiTrash2,
+  FiEye,
+  FiDollarSign,
+  FiTrendingUp,
+  FiMapPin,
+} from "react-icons/fi";
 import { MdBrokenImage } from "react-icons/md";
 import { useState } from "react";
 import { deleteListing, updateListing } from "@/app/dashboard/listings/actions";
@@ -94,14 +102,46 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
     }
   };
 
-  const priceDisplay =
-    listing.min_price && listing.max_price
-      ? `$${(listing.min_price / 1000).toFixed(0)}K - $${(listing.max_price / 1000).toFixed(0)}K`
-      : listing.min_price
-        ? `$${(listing.min_price / 1000).toFixed(0)}K`
-        : "Price TBD";
+  const formatAmount = (min, max) => {
+    if (min && max)
+      return `$${(min / 1000).toFixed(0)}K - $${(max / 1000).toFixed(0)}K`;
+    if (min) return `$${(min / 1000).toFixed(0)}K`;
+    if (max) return `$${(max / 1000).toFixed(0)}K`;
+    return null;
+  };
 
-  const truncateDescription = (text, maxLength = 80) => {
+  const priceDisplay =
+    formatAmount(listing.min_price, listing.max_price) || "Price TBD";
+  const revenueDisplay = formatAmount(listing.min_revenue, listing.max_revenue);
+  const cashflowDisplay = formatAmount(
+    listing.min_cashflow,
+    listing.max_cashflow,
+  );
+
+  const locationDisplay = [listing.state, listing.country]
+    .filter(Boolean)
+    .join(", ");
+
+  const featureFlags = [
+    listing.is_sba_approved && {
+      label: "SBA",
+      color: "#0284c7",
+      bg: "#e0f2fe",
+    },
+    listing.has_seller_financing && {
+      label: "Seller Finance",
+      color: "#7c3aed",
+      bg: "#ede9fe",
+    },
+    listing.is_distressed && {
+      label: "Distressed",
+      color: "#dc2626",
+      bg: "#fee2e2",
+    },
+    listing.is_remote && { label: "Remote", color: "#059669", bg: "#d1fae5" },
+  ].filter(Boolean);
+
+  const truncateDescription = (text, maxLength = 60) => {
     return text && text.length > maxLength
       ? text.substring(0, maxLength) + "..."
       : text;
@@ -257,16 +297,131 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
             {truncateDescription(listing.description)}
           </Typography>
 
-          {/* Price */}
-          <Typography
+          {/* Location */}
+          {locationDisplay && (
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 1.5 }}
+            >
+              <FiMapPin size={13} color="#9ca3af" />
+              <Typography variant="caption" sx={{ color: "#6b7280" }}>
+                {locationDisplay}
+              </Typography>
+            </Box>
+          )}
+
+          {/* Key Metrics */}
+          <Box
             sx={{
-              fontSize: "1.125rem",
-              fontWeight: 700,
-              color: "#0884ff",
+              display: "flex",
+              flexDirection: "column",
+              gap: 0.75,
+              p: 1.25,
+              borderRadius: 1.5,
+              backgroundColor: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              mb: 1.5,
             }}
           >
-            {priceDisplay}
-          </Typography>
+            {/* Price */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <FiDollarSign size={13} color="#0884ff" />
+                <Typography
+                  variant="caption"
+                  sx={{ color: "#6b7280", fontWeight: 500 }}
+                >
+                  Price
+                </Typography>
+              </Box>
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 700, color: "#0884ff" }}
+              >
+                {priceDisplay}
+              </Typography>
+            </Box>
+
+            {/* Revenue */}
+            {revenueDisplay && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <FiTrendingUp size={13} color="#059669" />
+                  <Typography
+                    variant="caption"
+                    sx={{ color: "#6b7280", fontWeight: 500 }}
+                  >
+                    Revenue
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 700, color: "#059669" }}
+                >
+                  {revenueDisplay}
+                </Typography>
+              </Box>
+            )}
+
+            {/* Cashflow */}
+            {cashflowDisplay && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <FiDollarSign size={13} color="#7c3aed" />
+                  <Typography
+                    variant="caption"
+                    sx={{ color: "#6b7280", fontWeight: 500 }}
+                  >
+                    Cashflow
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 700, color: "#7c3aed" }}
+                >
+                  {cashflowDisplay}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+
+          {/* Feature Flags */}
+          {featureFlags.length > 0 && (
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mb: 1 }}>
+              {featureFlags.map((flag) => (
+                <Chip
+                  key={flag.label}
+                  size="small"
+                  label={flag.label}
+                  sx={{
+                    height: 22,
+                    fontSize: "0.675rem",
+                    fontWeight: 600,
+                    backgroundColor: flag.bg,
+                    color: flag.color,
+                    "& .MuiChip-label": { px: 1 },
+                  }}
+                />
+              ))}
+            </Box>
+          )}
 
           {/* Created Date */}
           <Typography
@@ -274,7 +429,6 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
             sx={{
               color: "#9ca3af",
               display: "block",
-              mt: 1,
             }}
           >
             Listed {new Date(listing.created_at).toLocaleDateString()}
