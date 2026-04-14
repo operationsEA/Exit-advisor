@@ -21,12 +21,12 @@ import {
   Slider,
 } from "@mui/material";
 import { FiSearch } from "react-icons/fi";
-import { getPublicListings } from "@/app/listings/actions";
+import { getPublicListings } from "@/app/business-for-sale/actions";
 import ListingCard from "@/components/dashboard/Listings/ListingCard";
 import CATEGORIES from "@/data/categories.json";
 import COUNTRIES_LIST from "@/data/countries.json";
 
-export default function PublicListingsPage() {
+export default function BusinessForSalePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -190,7 +190,7 @@ export default function PublicListingsPage() {
       revenueRange,
       page,
     );
-    router.push(`/listings?${queryString}`);
+    router.push(`/business-for-sale?${queryString}`);
   }, [
     search,
     category,
