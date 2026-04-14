@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardMedia,
@@ -29,6 +30,7 @@ import {
 } from "react-icons/fi";
 import { MdBrokenImage } from "react-icons/md";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { deleteListing, updateListing } from "@/app/dashboard/listings/actions";
 import EditListingSlide from "./EditListingSlide";
 
@@ -45,6 +47,21 @@ const APPROVAL_COLORS = {
 };
 
 export default function ListingCard({ listing, onDelete, onRefresh }) {
+  const router = useRouter();
+  const { user } = useAuth();
+
+  // Role and permission flags
+  const role = user?.user_metadata?.role || null;
+  const isAdmin = role === "admin";
+  const isSeller = role === "seller";
+  const isBroker = role === "broker";
+  const isOwner = user?.id === listing.user_id;
+
+  // Conditional rendering flags
+  const canManageListing = (isSeller || isBroker) && isOwner; // Can edit own listing
+  const canViewEditMode = isAdmin || isSeller || isBroker; // Can view listing in edit mode
+  const showMenu = isSeller || isBroker; // Show menu if seller or broker
+
   const [anchorEl, setAnchorEl] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -61,8 +78,14 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
   const handleMenuClose = () => setAnchorEl(null);
 
   const handleViewClick = () => {
-    setSlideMode("view");
-    setSlideOpen(true);
+    // If user is admin/seller/broker, open edit slide
+    if (canViewEditMode) {
+      setSlideMode("view");
+      setSlideOpen(true);
+    } else {
+      // Otherwise, redirect to public listing page
+      router.push(`/listings/${listing.id}`);
+    }
   };
 
   const handleEditClick = () => {
@@ -241,20 +264,22 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
 
         {/* Content Section */}
         <CardContent sx={{ flexGrow: 1, pb: 1, position: "relative" }}>
-          {/* Menu Button - Top Right */}
-          <Box sx={{ position: "absolute", top: 24, right: 8 }}>
-            <IconButton
-              size="small"
-              onClick={handleMenuOpen}
-              sx={{
-                backgroundColor: "rgba(8, 132, 255, 0.1)",
-                color: "#0884ff",
-                "&:hover": { backgroundColor: "rgba(8, 132, 255, 0.2)" },
-              }}
-            >
-              <FiMoreVertical size={18} />
-            </IconButton>
-          </Box>
+          {/* Menu Button - Top Right (only for sellers/brokers) */}
+          {showMenu && (
+            <Box sx={{ position: "absolute", top: 24, right: 8 }}>
+              <IconButton
+                size="small"
+                onClick={handleMenuOpen}
+                sx={{
+                  backgroundColor: "rgba(8, 132, 255, 0.1)",
+                  color: "#0884ff",
+                  "&:hover": { backgroundColor: "rgba(8, 132, 255, 0.2)" },
+                }}
+              >
+                <FiMoreVertical size={18} />
+              </IconButton>
+            </Box>
+          )}
           {/* Category */}
           <Typography
             variant="caption"
@@ -435,7 +460,7 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
           </Typography>
         </CardContent>
 
-        {/* Actions Section */}
+        {/* Actions Section (conditional based on role and ownership) */}
         <CardActions
           sx={{
             padding: "12px 16px",
@@ -457,79 +482,90 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
               "&:hover": { borderColor: "#0670d6", color: "#0670d6" },
             }}
           >
-            View
+            {canViewEditMode ? "View" : "Details"}
           </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<FiEdit2 size={16} />}
-            onClick={handleEditClick}
-            sx={{
-              flex: 1,
-              textTransform: "none",
-              color: "#0884ff",
-              borderColor: "#0884ff",
-              "&:hover": { borderColor: "#0670d6", color: "#0670d6" },
-            }}
-          >
-            Edit
-          </Button>
+          {canManageListing && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<FiEdit2 size={16} />}
+              onClick={handleEditClick}
+              sx={{
+                flex: 1,
+                textTransform: "none",
+                color: "#0884ff",
+                borderColor: "#0884ff",
+                "&:hover": { borderColor: "#0670d6", color: "#0670d6" },
+              }}
+            >
+              Edit
+            </Button>
+          )}
         </CardActions>
       </Card>
 
-      {/* Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
-        <MenuItem>
-          <FiEdit2 size={16} style={{ marginRight: 8 }} />
-          Edit
-        </MenuItem>
-        <MenuItem onClick={handleDeleteClick}>
-          <FiTrash2 size={16} style={{ marginRight: 8, color: "#ef4444" }} />
-          <span style={{ color: "#ef4444" }}>Delete</span>
-        </MenuItem>
-      </Menu>
+      {/* Menu (only for sellers/brokers) */}
+      {showMenu && (
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+        >
+          <MenuItem>
+            <FiEdit2 size={16} style={{ marginRight: 8 }} />
+            Edit
+          </MenuItem>
+          <MenuItem onClick={handleDeleteClick}>
+            <FiTrash2 size={16} style={{ marginRight: 8, color: "#ef4444" }} />
+            <span style={{ color: "#ef4444" }}>Delete</span>
+          </MenuItem>
+        </Menu>
+      )}
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialog} onClose={() => setDeleteDialog(false)}>
-        <DialogTitle>Delete Listing?</DialogTitle>
-        <DialogContent>
-          {deleteError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {deleteError}
-            </Alert>
-          )}
-          <Typography>
-            Are you sure you want to delete "{listing.title}"? This action
-            cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialog(false)} disabled={isDeleting}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirmDelete}
-            variant="contained"
-            color="error"
-            disabled={isDeleting}
-          >
-            {isDeleting ? "Deleting..." : "Delete"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Delete Confirmation Dialog (only for sellers/brokers who own the listing) */}
+      {canManageListing && (
+        <Dialog open={deleteDialog} onClose={() => setDeleteDialog(false)}>
+          <DialogTitle>Delete Listing?</DialogTitle>
+          <DialogContent>
+            {deleteError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {deleteError}
+              </Alert>
+            )}
+            <Typography>
+              Are you sure you want to delete "{listing.title}"? This action
+              cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => setDeleteDialog(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmDelete}
+              variant="contained"
+              color="error"
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
 
-      {/* Edit Listing Slide */}
-      <EditListingSlide
-        open={slideOpen}
-        onClose={() => setSlideOpen(false)}
-        listing={listing}
-        mode={slideMode}
-        onSave={handleSaveListing}
-      />
+      {/* Edit Listing Slide (only for users who can view/edit) */}
+      {canViewEditMode && (
+        <EditListingSlide
+          open={slideOpen}
+          onClose={() => setSlideOpen(false)}
+          listing={listing}
+          mode={slideMode}
+          onSave={handleSaveListing}
+        />
+      )}
     </>
   );
 }
