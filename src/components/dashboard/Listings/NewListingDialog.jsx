@@ -22,19 +22,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { createListing } from "@/app/dashboard/listings/actions";
 
-// Business categories for dropdown
-const BUSINESS_CATEGORIES = [
-  "Retail Store",
-  "Restaurant & Café",
-  "Technology Startup",
-  "Consulting Firm",
-  "E-commerce Business",
-  "Fitness & Wellness",
-  "Real Estate Agency",
-  "Marketing Agency",
-  "Manufacturing",
-  "Professional Services",
-];
+import BUSINESS_CATEGORIES from "@/data/categories";
 
 // Yup validation schema
 const listingSchema = yup.object().shape({

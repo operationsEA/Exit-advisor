@@ -44,7 +44,7 @@ import {
   BUSINESS_CATEGORIES,
   STATUS_OPTIONS,
 } from "./listingSchema";
-import { COUNTRIES } from "./countriesList";
+import COUNTRIES from "@/data/countries.json";
 import {
   uploadAndUpdateListingImage,
   uploadAndUpdateFile,
