@@ -614,13 +614,15 @@ export async function deleteListing(listingId) {
 
 export async function getAllUniqueTags() {
   try {
+    console.log("Fetching all unique tags from listings...");
     const supabase = await createServerSupabaseClient();
 
     // Fetch all listings with tags
     const { data: listings, error } = await supabase
       .from("listings")
-      .select("tags")
-      .not("tags", "is", null);
+      .select("tags");
+
+    console.log("Fetched listings for tags:", { listings, error });
 
     if (error) {
       console.error("Error fetching tags:", error);

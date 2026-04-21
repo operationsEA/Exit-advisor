@@ -9,7 +9,6 @@ import COUNTRIES from "@/data/countries.json";
  * All filters are applied server-side on Supabase
  */
 export async function getPublicListings(filters = {}) {
-  console.log({ filters });
   try {
     const supabase = await createServerSupabaseClient();
     let query = supabase
@@ -38,6 +37,7 @@ export async function getPublicListings(filters = {}) {
         image_url,
         created_at,
         user_id,
+        tags,
         profiles:user_id(id, full_name, email, role)
       `,
         { count: "exact" },
@@ -58,6 +58,11 @@ export async function getPublicListings(filters = {}) {
     // Category filter
     if (filters.category) {
       query = query.eq("business_category", filters.category);
+    }
+
+    // Tag filter (JSONB contains)
+    if (filters.tag) {
+      query = query.filter("tags", "cs", JSON.stringify([filters.tag]));
     }
 
     // Status filter
@@ -154,6 +159,7 @@ export async function getPublicListings(filters = {}) {
     const { data, error, count } = await query;
 
     if (error) {
+      console.error("Supabase query error:", error);
       return { error: error.message, success: false };
     }
 
