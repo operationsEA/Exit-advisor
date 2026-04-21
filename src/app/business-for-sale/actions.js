@@ -222,6 +222,7 @@ export async function getListingDetail(listingId) {
         created_at,
         updated_at,
         user_id,
+        tags,
         profiles:user_id(id, full_name, email, role, avatar_url)
       `,
       )

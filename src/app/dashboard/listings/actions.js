@@ -23,6 +23,19 @@ export async function createListing(formData) {
         title: formData.title,
         description: formData.description,
         business_category: formData.business_category,
+        status: formData.status || "available",
+        min_price: formData.min_price || null,
+        max_price: formData.max_price || null,
+        min_revenue: formData.min_revenue || null,
+        max_revenue: formData.max_revenue || null,
+        country: formData.country || null,
+        state: formData.state || null,
+        is_sba_approved: formData.is_sba_approved || false,
+        has_seller_financing: formData.has_seller_financing || false,
+        is_distressed: formData.is_distressed || false,
+        is_remote: formData.is_remote || false,
+        is_featured: formData.is_featured || false,
+        tags: formData.tags?.length > 0 ? formData.tags : undefined,
       })
       .select()
       .single();
@@ -85,7 +98,8 @@ export async function getListings() {
         is_approved,
         image_url,
         created_at,
-        updated_at
+        updated_at,
+        tags
       `,
       )
       .eq("user_id", user.id)
@@ -168,6 +182,7 @@ export async function updateListing(listingId, listingData) {
         is_featured: listingData.is_featured,
         image_url: listingData.image_url,
         updated_at: new Date().toISOString(),
+        tags: listingData.tags?.length > 0 ? listingData.tags : undefined,
       })
       .eq("id", listingId)
       .eq("user_id", user.id)
@@ -469,6 +484,7 @@ export async function getAllListingsWithUsers() {
         created_at,
         updated_at,
         user_id,
+        tags,
         profiles:user_id (
           id,
           email,
@@ -593,5 +609,41 @@ export async function deleteListing(listingId) {
   } catch (error) {
     console.error("Error deleting listing:", error);
     return { error: error.message || "Failed to delete listing" };
+  }
+}
+
+export async function getAllUniqueTags() {
+  try {
+    const supabase = await createServerSupabaseClient();
+
+    // Fetch all listings with tags
+    const { data: listings, error } = await supabase
+      .from("listings")
+      .select("tags")
+      .not("tags", "is", null);
+
+    if (error) {
+      console.error("Error fetching tags:", error);
+      return { error: error.message || "Failed to fetch tags" };
+    }
+
+    // Collect all unique tags
+    const uniqueTags = new Set();
+    if (listings && listings.length > 0) {
+      listings.forEach((listing) => {
+        if (Array.isArray(listing.tags)) {
+          listing.tags.forEach((tag) => {
+            if (tag) {
+              uniqueTags.add(tag);
+            }
+          });
+        }
+      });
+    }
+
+    return { success: true, data: Array.from(uniqueTags).sort() };
+  } catch (error) {
+    console.error("Error in getAllUniqueTags:", error);
+    return { error: error.message || "Failed to fetch tags" };
   }
 }

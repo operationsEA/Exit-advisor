@@ -89,7 +89,12 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
-      router.push(`/business-for-sale/${slug}/${listing.id}`);
+
+      const catslug = listing.business_category
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      router.push(`/business-for-sale/${catslug}/${slug}/${listing.id}`);
     }
   };
 
