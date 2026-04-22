@@ -19,23 +19,9 @@ import {
   Divider,
   Chip,
   Grid,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Autocomplete,
 } from "@mui/material";
-import {
-  FiX,
-  FiUpload,
-  FiTrash2,
-  FiDownload,
-  FiFile,
-  FiFileText,
-  FiImage,
-} from "react-icons/fi";
+import { FiX, FiTrash2 } from "react-icons/fi";
 import { MdCheckCircle } from "react-icons/md";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -46,12 +32,9 @@ import {
 } from "./listingSchema";
 import COUNTRIES from "@/data/countries.json";
 import {
-  uploadAndUpdateListingImage,
-  uploadAndUpdateFile,
-  deleteListingDocument,
-  getListingDocuments,
+  createListing,
+  getAllUniqueTags,
 } from "@/app/dashboard/listings/actions";
-import { updateListing } from "@/app/dashboard/listings/actions";
 
 export default function EditListingSlide({
   open,
@@ -63,41 +46,41 @@ export default function EditListingSlide({
   onApprovalStatusChange,
 }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadingFile, setUploadingFile] = useState(false);
   const [approvingStatus, setApprovingStatus] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [listingImage, setListingImage] = useState(listing?.image_url || null);
-  const [documents, setDocuments] = useState([]);
-  const [deletingDocId, setDeletingDocId] = useState(null);
-  const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [isApproved, setIsApproved] = useState(listing?.is_approved || false);
+  const [tags, setTags] = useState(listing?.tags || []);
+  const [tagInput, setTagInput] = useState("");
+  const [tagSuggestions, setTagSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(true);
+
+  // Fetch unique tags from all listings
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        setLoadingSuggestions(true);
+        const result = await getAllUniqueTags();
+        if (result.success && result.data) {
+          setTagSuggestions(result.data);
+        }
+      } catch (error) {
+        console.error("Error fetching tags:", error);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    };
+    fetchTags();
+  }, []);
+
+  const handleRemoveTag = (tagToRemove) => {
+    setTags(tags.filter((tag) => tag !== tagToRemove));
+  };
+
+  const availableTags = tagSuggestions.filter((tag) => !tags.includes(tag));
 
   const isViewMode = mode === "view";
-
-  // Fetch documents on mount or when drawer opens
-  useEffect(() => {
-    if (open && listing?.id) {
-      fetchDocuments();
-    }
-  }, [open, listing?.id]);
-
-  const fetchDocuments = async () => {
-    setLoadingDocuments(true);
-    try {
-      const result = await getListingDocuments(listing.id);
-      if (result.success) {
-        setDocuments(result.data);
-      } else {
-        console.error("Failed to fetch documents:", result.error);
-      }
-    } catch (error) {
-      console.error("Error fetching documents:", error);
-    } finally {
-      setLoadingDocuments(false);
-    }
-  };
+  const isNewMode = mode === "new";
 
   const {
     control,
@@ -110,7 +93,7 @@ export default function EditListingSlide({
       title: listing?.title || "",
       description: listing?.description || "",
       business_category: listing?.business_category || "",
-      status: listing?.status || "draft",
+      status: listing?.status || "available",
       min_price: listing?.min_price || null,
       max_price: listing?.max_price || null,
       min_revenue: listing?.min_revenue || null,
@@ -125,112 +108,24 @@ export default function EditListingSlide({
     },
   });
 
-  const handleImageUpload = async (file) => {
-    if (!file) return;
-
-    try {
-      setUploadingImage(true);
-      setErrorMessage("");
-
-      // Call server action to handle delete + upload + update
-      const result = await uploadAndUpdateListingImage(
-        listing.id,
-        listing.image_url,
-        file,
-        file.name,
-      );
-
-      if (result.error) {
-        setErrorMessage(result.error);
-      } else {
-        setListingImage(result.imageUrl);
-        setSuccessMessage("Image uploaded successfully!");
-        setTimeout(() => setSuccessMessage(""), 3000);
-      }
-    } catch (error) {
-      setErrorMessage(error.message || "Failed to upload image");
-      console.error("Image upload error:", error);
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
-  const handleFileUpload = async (file) => {
-    if (!file) return;
-
-    try {
-      setUploadingFile(true);
-      setErrorMessage("");
-
-      const result = await uploadAndUpdateFile(
-        listing.id,
-        file,
-        file.name,
-        file.size,
-      );
-
-      if (result.error) {
-        setErrorMessage(result.error);
-      } else {
-        setSuccessMessage("Document uploaded successfully!");
-        setTimeout(() => setSuccessMessage(""), 3000);
-        // Refresh documents list
-        await fetchDocuments();
-      }
-    } catch (error) {
-      setErrorMessage(error.message || "Failed to upload document");
-      console.error("File upload error:", error);
-    } finally {
-      setUploadingFile(false);
-    }
-  };
-
-  const handleDeleteDocument = async (documentId, fileUrl) => {
-    try {
-      setDeletingDocId(documentId);
-      const result = await deleteListingDocument(documentId, fileUrl);
-
-      if (result.error) {
-        setErrorMessage(result.error);
-      } else {
-        setSuccessMessage("Document deleted successfully!");
-        setTimeout(() => setSuccessMessage(""), 3000);
-        // Refresh documents list
-        await fetchDocuments();
-      }
-    } catch (error) {
-      setErrorMessage(error.message || "Failed to delete document");
-      console.error("Delete error:", error);
-    } finally {
-      setDeletingDocId(null);
-    }
-  };
-
-  const getFileIcon = (fileType) => {
-    if (!fileType) return <FiFile size={18} />;
-    const type = fileType.toLowerCase();
-    if (type === "pdf" || type === "doc" || type === "docx" || type === "txt") {
-      return <FiFileText size={18} />;
-    }
-    if (type === "png" || type === "jpg" || type === "jpeg" || type === "gif") {
-      return <FiImage size={18} />;
-    }
-    return <FiFile size={18} />;
-  };
-
   const onSubmit = async (data) => {
     try {
       setIsLoading(true);
       setErrorMessage("");
       setSuccessMessage("");
 
-      const updatedListing = {
-        ...data,
-        image_url: listingImage,
-      };
-
-      await onSave(updatedListing);
-      setSuccessMessage("Listing updated successfully!");
+      if (isNewMode) {
+        const result = await createListing({ ...data, tags });
+        if (result?.error) {
+          setErrorMessage(result.error);
+          return;
+        }
+        setSuccessMessage("Listing submitted for approval!");
+        onSave && onSave({ ...result.data, tags });
+      } else {
+        await onSave({ ...data, tags });
+        setSuccessMessage("Listing updated successfully!");
+      }
 
       setTimeout(() => {
         onClose();
@@ -245,7 +140,8 @@ export default function EditListingSlide({
 
   const handleClose = () => {
     reset();
-    setListingImage(listing?.image_url || null);
+    setTags([]);
+    setTagInput("");
     setSuccessMessage("");
     setErrorMessage("");
     setIsApproved(listing?.is_approved || false);
@@ -298,20 +194,30 @@ export default function EditListingSlide({
       >
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 700, color: "#111827" }}>
-            {isViewMode ? "View" : "Edit"} Listing
+            {isNewMode
+              ? "Create New Listing"
+              : isViewMode
+                ? "View Listing"
+                : "Edit Listing"}
           </Typography>
           <Typography variant="caption" sx={{ color: "#6b7280" }}>
-            {isViewMode ? "View details" : "Update your listing information"}
+            {isNewMode
+              ? "Fill in the details to submit for approval"
+              : isViewMode
+                ? "View details"
+                : "Update your listing information"}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Chip
-            label={isApproved ? "✓ Approved" : "⊗ Pending"}
-            size="small"
-            color={isApproved ? "success" : "warning"}
-            variant="outlined"
-            sx={{ fontWeight: 600 }}
-          />
+          {!isNewMode && (
+            <Chip
+              label={isApproved ? "✓ Approved" : "⊗ Pending"}
+              size="small"
+              color={isApproved ? "success" : "warning"}
+              variant="outlined"
+              sx={{ fontWeight: 600 }}
+            />
+          )}
           <IconButton onClick={handleClose} size="small">
             <FiX size={20} />
           </IconButton>
@@ -341,107 +247,116 @@ export default function EditListingSlide({
           </Alert>
         )}
 
-        {/* Image Section */}
-        {!isViewMode && (
-          <Paper sx={{ p: 2, mb: 3, backgroundColor: "#f9fafb" }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, mb: 2, color: "#111827" }}
-            >
-              Listing Image
-            </Typography>
-            {listingImage && (
-              <Box
-                sx={{
-                  mb: 2,
-                  borderRadius: 1,
-                  overflow: "hidden",
-                  height: 200,
-                  backgroundColor: "#e5e7eb",
-                }}
-              >
-                <img
-                  src={listingImage}
-                  alt="Listing"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
-              </Box>
-            )}
-            <Button
-              component="label"
-              variant="outlined"
-              size="small"
-              startIcon={
-                uploadingImage ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <FiUpload size={18} />
-                )
-              }
-              fullWidth
-              disabled={uploadingImage}
-              sx={{
-                textTransform: "none",
-                color: "#0884ff",
-                borderColor: "#0884ff",
-                "&:hover": { borderColor: "#0670d6", color: "#0670d6" },
-              }}
-            >
-              {uploadingImage ? "Uploading..." : "Upload Image"}
-              <input
-                hidden
-                accept="image/*"
-                type="file"
-                onChange={(e) => handleImageUpload(e.target.files?.[0])}
-              />
-            </Button>
-          </Paper>
-        )}
-
         {/* Form Fields */}
         <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* Title */}
           <Controller
             name="title"
             control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Business Title"
-                fullWidth
-                variant="outlined"
-                size="small"
-                disabled={isViewMode}
-                error={!!errors.title}
-                helperText={errors.title?.message}
-                sx={{ mb: 2 }}
-              />
-            )}
+            render={({ field }) => {
+              const currentLength = field.value?.length || 0;
+              const maxLength = 80;
+              const remaining = maxLength - currentLength;
+
+              return (
+                <Box sx={{ mb: 2 }}>
+                  <TextField
+                    {...field}
+                    label="Business Title"
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    disabled={isViewMode}
+                    error={!!errors.title}
+                    helperText={errors.title?.message}
+                    multiline
+                    minRows={1}
+                    maxRows={3}
+                    inputProps={{ maxLength }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        wordWrap: "break-word",
+                        overflowWrap: "break-word",
+                      },
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mt: 0.5,
+                      px: 1,
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+                      {currentLength}/{maxLength} characters
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: remaining < 20 ? "#ef4444" : "#6b7280",
+                        fontWeight: remaining < 20 ? 600 : 400,
+                      }}
+                    >
+                      5 minimum, {remaining} left
+                    </Typography>
+                  </Box>
+                </Box>
+              );
+            }}
           />
 
           {/* Description */}
           <Controller
             name="description"
             control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Description"
-                fullWidth
-                variant="outlined"
-                multiline
-                rows={4}
-                size="small"
-                disabled={isViewMode}
-                error={!!errors.description}
-                helperText={errors.description?.message}
-                sx={{ mb: 2 }}
-              />
-            )}
+            render={({ field }) => {
+              const currentLength = field.value?.length || 0;
+              const maxLength = 5000;
+              const remaining = maxLength - currentLength;
+
+              return (
+                <Box sx={{ mb: 2 }}>
+                  <TextField
+                    {...field}
+                    label="Description"
+                    fullWidth
+                    variant="outlined"
+                    multiline
+                    minRows={16}
+                    maxRows={32}
+                    size="small"
+                    disabled={isViewMode}
+                    error={!!errors.description}
+                    helperText={errors.description?.message}
+                    inputProps={{ maxLength }}
+                  />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mt: 0.5,
+                      px: 1,
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+                      {currentLength}/{maxLength} characters
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: remaining < 200 ? "#ef4444" : "#6b7280",
+                        fontWeight: remaining < 200 ? 600 : 400,
+                      }}
+                    >
+                      500 minimum, {remaining} left
+                    </Typography>
+                  </Box>
+                </Box>
+              );
+            }}
           />
 
           {/* Category & Status */}
@@ -675,204 +590,81 @@ export default function EditListingSlide({
               </Grid>
             ))}
           </Grid>
-        </Box>
-        {/* Documents Section */}
-        <Paper sx={{ p: 2, mb: 3, mt: 2, backgroundColor: "#f9fafb" }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 2,
-            }}
+
+          {/* Tags Section */}
+          <Divider sx={{ my: 2 }} />
+          <Typography
+            variant="subtitle2"
+            sx={{ fontWeight: 600, mb: 1.5, color: "#111827" }}
           >
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, color: "#111827" }}
-            >
-              📄 Business Documents
-            </Typography>
-            {!isViewMode && (
-              <Chip
-                label={`${documents.length} file(s)`}
-                size="small"
-                variant="outlined"
-                color="info"
-              />
-            )}
-          </Box>
+            Business Tags (Max 8)
+          </Typography>
 
-          {/* Documents List */}
-          {loadingDocuments ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-              <CircularProgress size={30} />
-            </Box>
-          ) : documents.length > 0 ? (
-            <TableContainer sx={{ mb: 2, border: "1px solid #e5e7eb" }}>
-              <Table size="small">
-                <TableHead sx={{ backgroundColor: "#f3f4f6" }}>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 600, color: "#111827" }}>
-                      File Name
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: "#111827" }}>
-                      Type
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: "#111827" }}>
-                      Uploaded
-                    </TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{ fontWeight: 600, color: "#111827" }}
-                    >
-                      Actions
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {documents.map((doc) => {
-                    const fileName = doc.file_url
-                      .split("/")
-                      .pop()
-                      .split("-")
-                      .slice(1)
-                      .join("-");
-                    const uploadDate = new Date(
-                      doc.created_at,
-                    ).toLocaleDateString();
-
-                    return (
-                      <TableRow
-                        key={doc.id}
-                        sx={{
-                          "&:hover": { backgroundColor: "#f9fafb" },
-                        }}
-                      >
-                        <TableCell sx={{ py: 1 }}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1,
-                            }}
-                          >
-                            <Box sx={{ color: "#0884ff" }}>
-                              {getFileIcon(doc.file_type)}
-                            </Box>
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                maxWidth: "150px",
-                              }}
-                              title={fileName}
-                            >
-                              {fileName}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ py: 1 }}>
-                          <Chip
-                            label={doc.file_type?.toUpperCase() || "FILE"}
-                            size="small"
-                            variant="outlined"
-                            sx={{
-                              fontSize: "0.75rem",
-                              height: 24,
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell sx={{ py: 1, fontSize: "0.875rem" }}>
-                          {uploadDate}
-                        </TableCell>
-                        <TableCell align="right" sx={{ py: 1 }}>
-                          <IconButton
-                            size="small"
-                            href={doc.file_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Download"
-                            sx={{
-                              color: "#0884ff",
-                              mr: 1,
-                              "&:hover": { backgroundColor: "#e0f0ff" },
-                            }}
-                          >
-                            <FiDownload size={16} />
-                          </IconButton>
-                          {!isViewMode && (
-                            <IconButton
-                              size="small"
-                              onClick={() =>
-                                handleDeleteDocument(doc.id, doc.file_url)
-                              }
-                              disabled={deletingDocId === doc.id}
-                              title="Delete"
-                              sx={{
-                                color: "#ef4444",
-                                "&:hover": { backgroundColor: "#fee2e2" },
-                              }}
-                            >
-                              {deletingDocId === doc.id ? (
-                                <CircularProgress size={16} />
-                              ) : (
-                                <FiTrash2 size={16} />
-                              )}
-                            </IconButton>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          ) : (
-            <Box
-              sx={{
-                textAlign: "center",
-                py: 3,
-                color: "#9ca3af",
-              }}
-            >
-              <FiFile size={32} style={{ margin: "0 auto 8px" }} />
-              <Typography variant="body2">No documents uploaded yet</Typography>
-            </Box>
-          )}
-
-          {/* Upload File Button */}
-          {!isViewMode && (
-            <Button
-              component="label"
-              variant="outlined"
-              size="small"
-              startIcon={
-                uploadingFile ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <FiUpload size={18} />
-                )
-              }
+          {!isViewMode && tags.length < 8 && (
+            <Autocomplete
+              options={availableTags}
+              freeSolo
               fullWidth
-              disabled={uploadingFile}
+              size="small"
+              value={null}
+              inputValue={tagInput}
+              onInputChange={(event, value, reason) => {
+                setTagInput(value);
+              }}
+              onChange={(event, value, reason) => {
+                if (value && !tags.includes(value) && tags.length < 8) {
+                  setTags([...tags, value]);
+                  setTagInput("");
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Search or type to add tags..."
+                  sx={{ mb: 2 }}
+                />
+              )}
+            />
+          )}
+
+          {/* Tags Display */}
+          {tags.length > 0 && (
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
+              {tags.map((tag) => (
+                <Chip
+                  key={tag}
+                  label={tag}
+                  onDelete={() => handleRemoveTag(tag)}
+                  disabled={isViewMode}
+                  sx={{
+                    backgroundColor: "#dbeafe",
+                    color: "#0284c7",
+                    fontWeight: 600,
+                    fontSize: "0.875rem",
+                    "& .MuiChip-deleteIcon": {
+                      color: "#0284c7",
+                      "&:hover": { color: "#0670d6" },
+                    },
+                  }}
+                />
+              ))}
+            </Box>
+          )}
+
+          {tags.length > 0 && (
+            <Typography
+              variant="caption"
               sx={{
-                textTransform: "none",
-                color: "#0884ff",
-                borderColor: "#0884ff",
-                "&:hover": { borderColor: "#0670d6", color: "#0670d6" },
+                color: tags.length >= 8 ? "#ef4444" : "#9ca3af",
+                fontWeight: tags.length >= 8 ? 600 : 400,
+                display: "block",
+                mb: 2,
               }}
             >
-              {uploadingFile ? "Uploading..." : "Upload Document"}
-              <input
-                hidden
-                type="file"
-                onChange={(e) => handleFileUpload(e.target.files?.[0])}
-              />
-            </Button>
+              {tags.length}/8 tags used
+            </Typography>
           )}
-        </Paper>
+        </Box>
       </Box>
 
       {/* Footer */}
@@ -933,7 +725,11 @@ export default function EditListingSlide({
                 "&:hover": { backgroundColor: "#0670d6" },
               }}
             >
-              {isLoading ? "Saving..." : "Save Changes"}
+              {isLoading
+                ? "Saving..."
+                : isNewMode
+                  ? "Submit for Approval"
+                  : "Save Changes"}
             </Button>
           )}
         </Box>

@@ -14,12 +14,10 @@ export function AuthProvider({ children }) {
   // Manually fetch and update session
   const fetchSession = async () => {
     try {
-      console.log("Fetching session...");
       const {
         data: { session },
         error,
       } = await supabase.auth.getSession();
-      console.log("Session fetched:", { user: session?.user?.email, error });
 
       if (error) {
         console.error("Session fetch error:", error.message);

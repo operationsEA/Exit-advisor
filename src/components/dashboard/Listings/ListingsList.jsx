@@ -1,15 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  Box,
-  Grid,
-  Typography,
-  CircularProgress,
-  Alert,
-  Button,
-} from "@mui/material";
-import { FiRefreshCw } from "react-icons/fi";
+import { Box, Grid, Typography, Alert, Button } from "@mui/material";
 import { getListings } from "@/app/dashboard/listings/actions";
 import ListingCard from "./ListingCard";
 import Loading from "@/components/Shared/Loading";

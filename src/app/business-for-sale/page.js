@@ -19,10 +19,12 @@ import {
   FormControlLabel,
   Checkbox,
   Slider,
+  Chip,
 } from "@mui/material";
 import { FiSearch } from "react-icons/fi";
 import { getPublicListings } from "@/app/business-for-sale/actions";
 import ListingCard from "@/components/dashboard/Listings/ListingCard";
+import TagsSelect from "@/components/business-for-sale/TagsSelect";
 import CATEGORIES from "@/data/categories.json";
 import COUNTRIES_LIST from "@/data/countries.json";
 
@@ -68,6 +70,7 @@ export default function BusinessForSalePage() {
     searchParams.get("distressed") === "true",
   );
   const [remote, setRemote] = useState(searchParams.get("remote") === "true");
+  const [tag, setTag] = useState(searchParams.get("tag") || "");
 
   // Pagination
   const [page, setPage] = useState(parseInt(searchParams.get("page")) || 1);
@@ -101,11 +104,12 @@ export default function BusinessForSalePage() {
       if (sellerFinancing) params.set("sellerFinancing", "true");
       if (distressed) params.set("distressed", "true");
       if (remote) params.set("remote", "true");
+      if (tag) params.set("tag", tag);
       if (pageVal > 1) params.set("page", pageVal);
 
       return params.toString();
     },
-    [featured, sbaApproved, sellerFinancing, distressed, remote],
+    [featured, sbaApproved, sellerFinancing, distressed, remote, tag],
   );
 
   // Fetch listings when filters change
@@ -151,6 +155,7 @@ export default function BusinessForSalePage() {
       if (sellerFinancing) filters.sellerFinancing = sellerFinancing;
       if (distressed) filters.distressed = distressed;
       if (remote) filters.remote = remote;
+      if (tag) filters.tag = tag;
 
       const result = await getPublicListings(filters);
 
@@ -175,6 +180,7 @@ export default function BusinessForSalePage() {
     sellerFinancing,
     distressed,
     remote,
+    tag,
     page,
   ]);
 
@@ -200,6 +206,7 @@ export default function BusinessForSalePage() {
     priceRange,
     revenueRange,
     page,
+    tag,
     buildQueryString,
     router,
   ]);
@@ -217,12 +224,21 @@ export default function BusinessForSalePage() {
     setSellerFinancing(false);
     setDistressed(false);
     setRemote(false);
+    setTag("");
     setPage(1);
   };
 
   const handlePageChange = (event, value) => {
     setPage(value);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleFavoriteChange = (listingId, isFavourite) => {
+    setListings((prev) =>
+      prev.map((item) =>
+        item.id === listingId ? { ...item, is_favourite: isFavourite } : item,
+      ),
+    );
   };
 
   return (
@@ -331,6 +347,15 @@ export default function BusinessForSalePage() {
                 <MenuItem value="sold">Sold</MenuItem>
               </Select>
             </FormControl>
+
+            {/* Tags Filter */}
+            <TagsSelect
+              value={tag}
+              onChange={(e) => {
+                setTag(e.target.value);
+                setPage(1);
+              }}
+            />
 
             {/* Country Filter */}
             <FormControl fullWidth size="small" sx={{ mb: 2 }}>
@@ -523,6 +548,40 @@ export default function BusinessForSalePage() {
             </Box>
           ) : (
             <>
+              {/* Active Filters */}
+              {tag && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    mb: 2,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "#6b7280", fontWeight: 500 }}
+                  >
+                    Active filters:
+                  </Typography>
+                  <Chip
+                    label={`Tag: ${tag}`}
+                    onDelete={() => {
+                      setTag("");
+                      setPage(1);
+                    }}
+                    size="small"
+                    sx={{
+                      backgroundColor: "#dbeafe",
+                      color: "#0284c7",
+                      fontWeight: 600,
+                      "& .MuiChip-deleteIcon": { color: "#0284c7" },
+                    }}
+                  />
+                </Box>
+              )}
+
               {/* Results Count */}
               <Typography variant="body2" sx={{ mb: 2, color: "#6b7280" }}>
                 Showing {listings.length} listings
@@ -532,7 +591,10 @@ export default function BusinessForSalePage() {
               <Grid container spacing={2}>
                 {listings.map((listing) => (
                   <Grid item xs={12} sm={6} lg={4} key={listing.id}>
-                    <ListingCard listing={listing} />
+                    <ListingCard
+                      listing={listing}
+                      onFavoriteChange={handleFavoriteChange}
+                    />
                   </Grid>
                 ))}
               </Grid>

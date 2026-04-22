@@ -8,28 +8,19 @@ import {
   Button,
   Divider,
   Avatar,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Alert,
 } from "@mui/material";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   FiDollarSign,
   FiTrendingUp,
   FiMapPin,
   FiCalendar,
-  FiDownload,
-  FiUser,
   FiAward,
 } from "react-icons/fi";
-import {
-  getListingDetail,
-  getListingDocumentsPublic,
-} from "@/app/business-for-sale/actions";
+import { getListingDetail } from "@/app/business-for-sale/actions";
+import DescriptionToggle from "@/components/business-for-sale/DescriptionToggle";
+import FavoriteToggleButton from "@/components/business-for-sale/FavoriteToggleButton";
 
 const STATUS_COLORS = {
   available: { bg: "#ecfdf5", text: "#065f46", label: "Available" },
@@ -46,8 +37,7 @@ const FEATURE_FLAGS = [
 ];
 
 export async function generateMetadata(props) {
-  const params = await props.params;
-  const { id } = await params;
+  const { id } = await props.params;
   const result = await getListingDetail(id);
 
   if (!result.success) {
@@ -62,25 +52,16 @@ export async function generateMetadata(props) {
 }
 
 export default async function ListingDetailPage(props) {
-  const params = await props.params;
-  const { id } = await params;
+  const { id } = await props.params;
 
-  // Fetch listing detail and documents
+  // Fetch listing detail
   const listingResult = await getListingDetail(id);
-  const documentsResult = await getListingDocumentsPublic(id);
 
   if (!listingResult.success) {
     notFound();
   }
 
   const listing = listingResult.data;
-  const documents = documentsResult.success ? documentsResult.data : [];
-
-  // Format numbers
-  const formatPrice = (val) => {
-    if (!val) return "N/A";
-    return `$${(val / 1000000).toFixed(2)}M`;
-  };
 
   const priceDisplay =
     listing.min_price && listing.max_price
@@ -111,12 +92,23 @@ export default async function ListingDetailPage(props) {
       <Container maxWidth="lg" sx={{ py: 4 }}>
         {/* Header */}
         <Box sx={{ mb: 4 }}>
-          <Typography
-            variant="h3"
-            sx={{ fontWeight: 700, mb: 2, color: "#111827" }}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: 2,
+              mb: 2,
+            }}
           >
-            {listing.title}
-          </Typography>
+            <Typography variant="h3" sx={{ fontWeight: 700, color: "#111827" }}>
+              {listing.title}
+            </Typography>
+            <FavoriteToggleButton
+              listingId={listing.id}
+              initialFavorited={listing.is_favourite}
+            />
+          </Box>
           <Box
             sx={{
               display: "flex",
@@ -168,6 +160,35 @@ export default async function ListingDetailPage(props) {
               </Typography>
             </Box>
           </Box>
+
+          {/* Tags */}
+          {listing.tags && listing.tags.length > 0 && (
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}>
+              {listing.tags.map((tag) => (
+                <Link
+                  key={tag}
+                  href={`/business-for-sale?tag=${encodeURIComponent(tag)}`}
+                  style={{ textDecoration: "none" }}
+                >
+                  <Chip
+                    label={tag}
+                    clickable
+                    sx={{
+                      backgroundColor: "#dbeafe",
+                      color: "#0284c7",
+                      border: "1px solid #bfdbfe",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      "&:hover": {
+                        backgroundColor: "#bfdbfe",
+                        color: "#0570d6",
+                      },
+                    }}
+                  />
+                </Link>
+              ))}
+            </Box>
+          )}
         </Box>
 
         <Grid container spacing={3}>
@@ -209,15 +230,7 @@ export default async function ListingDetailPage(props) {
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
                 Business Description
               </Typography>
-              <Typography
-                sx={{
-                  lineHeight: 1.8,
-                  color: "#4b5563",
-                  whiteSpace: "pre-wrap",
-                }}
-              >
-                {listing.description}
-              </Typography>
+              <DescriptionToggle description={listing.description} />
             </Paper>
 
             {/* Key Metrics */}
@@ -349,70 +362,6 @@ export default async function ListingDetailPage(props) {
                 )}
               </Box>
             </Paper>
-
-            {/* Documents Section */}
-            {documents.length > 0 && (
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                  Documents ({documents.length})
-                </Typography>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow sx={{ backgroundColor: "#f9fafb" }}>
-                        <TableCell sx={{ fontWeight: 700 }}>
-                          File Name
-                        </TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Type</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Date</TableCell>
-                        <TableCell
-                          sx={{ fontWeight: 700, textAlign: "center" }}
-                        >
-                          Action
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {documents.map((doc) => (
-                        <TableRow key={doc.id} hover>
-                          <TableCell sx={{ color: "#111827" }}>
-                            {doc.file_url.split("/").pop().substring(0, 40)}...
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              label={doc.file_type?.toUpperCase() || "FILE"}
-                              size="small"
-                              variant="outlined"
-                            />
-                          </TableCell>
-                          <TableCell sx={{ color: "#6b7280" }}>
-                            {new Date(doc.created_at).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell sx={{ textAlign: "center" }}>
-                            <Button
-                              size="small"
-                              href={doc.file_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              startIcon={<FiDownload size={16} />}
-                              sx={{
-                                textTransform: "none",
-                                color: "#0884ff",
-                                "&:hover": {
-                                  backgroundColor: "rgba(8, 132, 255, 0.1)",
-                                },
-                              }}
-                            >
-                              Download
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Paper>
-            )}
           </Grid>
 
           {/* Sidebar */}

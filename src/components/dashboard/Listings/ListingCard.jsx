@@ -24,15 +24,21 @@ import {
   FiEdit2,
   FiTrash2,
   FiEye,
+  FiUploadCloud,
   FiDollarSign,
   FiTrendingUp,
   FiMapPin,
 } from "react-icons/fi";
 import { MdBrokenImage } from "react-icons/md";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { deleteListing, updateListing } from "@/app/dashboard/listings/actions";
+import {
+  deleteListing,
+  updateListing,
+  uploadAndUpdateListingImage,
+} from "@/app/dashboard/listings/actions";
 import EditListingSlide from "./EditListingSlide";
+import FavoriteToggleButton from "@/components/business-for-sale/FavoriteToggleButton";
 
 const STATUS_COLORS = {
   available: { bg: "#ecfdf5", text: "#065f46", label: "Available" },
@@ -46,9 +52,15 @@ const APPROVAL_COLORS = {
   pending: { bg: "#fef08a", text: "#713f12", label: "Pending" },
 };
 
-export default function ListingCard({ listing, onDelete, onRefresh }) {
+export default function ListingCard({
+  listing,
+  onDelete,
+  onRefresh,
+  onFavoriteChange,
+}) {
   const router = useRouter();
   const { user } = useAuth();
+  const imageInputRef = useRef(null);
 
   // Role and permission flags
   const role = user?.user_metadata?.role || null;
@@ -56,16 +68,23 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
   const isSeller = role === "seller";
   const isBroker = role === "broker";
   const isOwner = user?.id === listing.user_id;
+  const isBuyer = user && !isAdmin && !isSeller && !isBroker; // Buyer is regular authenticated user
 
   // Conditional rendering flags
   const canManageListing = (isSeller || isBroker) && isOwner; // Can edit own listing
   const canViewEditMode = isAdmin || isSeller || isBroker; // Can view listing in edit mode
   const showMenu = isSeller || isBroker; // Show menu if seller or broker
+  const showFavoriteButton = isBuyer; // Show favorite toggle only to buyers
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState("");
+  const [currentImageUrl, setCurrentImageUrl] = useState(
+    listing.image_url || "",
+  );
   const [slideOpen, setSlideOpen] = useState(false);
   const [slideMode, setSlideMode] = useState("view"); // 'view' or 'edit'
 
@@ -89,7 +108,12 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "");
-      router.push(`/business-for-sale/${slug}/${listing.id}`);
+
+      const catslug = listing.business_category
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      router.push(`/business-for-sale/${catslug}/${slug}/${listing.id}`);
     }
   };
 
@@ -127,6 +151,44 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
       }
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleUploadImageClick = () => {
+    if (!canManageListing || isUploadingImage) return;
+    imageInputRef.current?.click();
+  };
+
+  const handleImageSelected = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file || !canManageListing) return;
+
+    setImageUploadError("");
+    setIsUploadingImage(true);
+
+    try {
+      const result = await uploadAndUpdateListingImage(
+        listing.id,
+        currentImageUrl,
+        file,
+        file.name,
+        listing.business_category,
+        listing.title,
+      );
+
+      if (result?.error) {
+        setImageUploadError(result.error);
+        return;
+      }
+
+      setCurrentImageUrl(result.imageUrl || "");
+      onRefresh && onRefresh();
+    } catch (error) {
+      setImageUploadError(error.message || "Failed to upload image");
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -193,12 +255,12 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
       >
         {/* Image Section */}
         <Box sx={{ position: "relative", overflow: "hidden", height: 200 }}>
-          {listing.image_url ? (
+          {currentImageUrl ? (
             <CardMedia
               component="div"
               sx={{
                 height: "100%",
-                backgroundImage: `url(${listing.image_url})`,
+                backgroundImage: `url(${currentImageUrl})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
               }}
@@ -209,13 +271,51 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
                 height: "100%",
                 background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
+                gap: 1.5,
+                px: 2,
               }}
             >
-              <MdBrokenImage size={60} color="rgba(255, 255, 255, 0.6)" />
+              <MdBrokenImage size={56} color="rgba(255, 255, 255, 0.75)" />
+              {canManageListing ? (
+                <Button
+                  size="small"
+                  variant="contained"
+                  startIcon={<FiUploadCloud size={16} />}
+                  onClick={handleUploadImageClick}
+                  disabled={isUploadingImage}
+                  sx={{
+                    textTransform: "none",
+                    borderRadius: 8,
+                    backgroundColor: "rgba(255,255,255,0.18)",
+                    border: "1px solid rgba(255,255,255,0.38)",
+                    color: "#ffffff",
+                    backdropFilter: "blur(4px)",
+                    "&:hover": { backgroundColor: "rgba(255,255,255,0.28)" },
+                  }}
+                >
+                  {isUploadingImage ? "Uploading..." : "Upload Cover Image"}
+                </Button>
+              ) : (
+                <Typography
+                  variant="caption"
+                  sx={{ color: "rgba(255,255,255,0.92)" }}
+                >
+                  No Image Available
+                </Typography>
+              )}
             </Box>
           )}
+
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelected}
+            style={{ display: "none" }}
+          />
 
           {/* Status Badge */}
           <Box
@@ -253,7 +353,13 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
           </Box>
 
           {/* Approval Badge */}
-          <Box sx={{ position: "absolute", top: 12, right: 12 }}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+            }}
+          >
             <Chip
               size="small"
               label={approvalInfo.label}
@@ -267,11 +373,33 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
           </Box>
         </Box>
 
+        {imageUploadError && (
+          <Box sx={{ px: 1.5, pt: 1.5 }}>
+            <Alert severity="error">{imageUploadError}</Alert>
+          </Box>
+        )}
+
         {/* Content Section */}
         <CardContent sx={{ flexGrow: 1, pb: 1, position: "relative" }}>
-          {/* Menu Button - Top Right (only for sellers/brokers) */}
-          {showMenu && (
-            <Box sx={{ position: "absolute", top: 24, right: 8 }}>
+          {/* Action Buttons - Top Right (Favorite for buyers, Menu for sellers/brokers) */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 24,
+              right: 8,
+              display: "flex",
+              gap: 0.5,
+            }}
+          >
+            {showFavoriteButton && (
+              <FavoriteToggleButton
+                listingId={listing.id}
+                initialFavorited={listing.is_favourite}
+                size="small"
+                onChange={(isFav) => onFavoriteChange?.(listing.id, isFav)}
+              />
+            )}
+            {showMenu && (
               <IconButton
                 size="small"
                 onClick={handleMenuOpen}
@@ -283,8 +411,8 @@ export default function ListingCard({ listing, onDelete, onRefresh }) {
               >
                 <FiMoreVertical size={18} />
               </IconButton>
-            </Box>
-          )}
+            )}
+          </Box>
           {/* Category */}
           <Typography
             variant="caption"
