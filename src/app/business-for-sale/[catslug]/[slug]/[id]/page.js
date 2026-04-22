@@ -8,7 +8,6 @@ import {
   Button,
   Divider,
   Avatar,
-  Alert,
 } from "@mui/material";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -17,11 +16,11 @@ import {
   FiTrendingUp,
   FiMapPin,
   FiCalendar,
-  FiUser,
   FiAward,
 } from "react-icons/fi";
 import { getListingDetail } from "@/app/business-for-sale/actions";
 import DescriptionToggle from "@/components/business-for-sale/DescriptionToggle";
+import FavoriteToggleButton from "@/components/business-for-sale/FavoriteToggleButton";
 
 const STATUS_COLORS = {
   available: { bg: "#ecfdf5", text: "#065f46", label: "Available" },
@@ -38,8 +37,7 @@ const FEATURE_FLAGS = [
 ];
 
 export async function generateMetadata(props) {
-  const params = await props.params;
-  const { id } = await params;
+  const { id } = await props.params;
   const result = await getListingDetail(id);
 
   if (!result.success) {
@@ -54,8 +52,7 @@ export async function generateMetadata(props) {
 }
 
 export default async function ListingDetailPage(props) {
-  const params = await props.params;
-  const { id } = await params;
+  const { id } = await props.params;
 
   // Fetch listing detail
   const listingResult = await getListingDetail(id);
@@ -65,12 +62,6 @@ export default async function ListingDetailPage(props) {
   }
 
   const listing = listingResult.data;
-
-  // Format numbers
-  const formatPrice = (val) => {
-    if (!val) return "N/A";
-    return `$${(val / 1000000).toFixed(2)}M`;
-  };
 
   const priceDisplay =
     listing.min_price && listing.max_price
@@ -101,12 +92,23 @@ export default async function ListingDetailPage(props) {
       <Container maxWidth="lg" sx={{ py: 4 }}>
         {/* Header */}
         <Box sx={{ mb: 4 }}>
-          <Typography
-            variant="h3"
-            sx={{ fontWeight: 700, mb: 2, color: "#111827" }}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: 2,
+              mb: 2,
+            }}
           >
-            {listing.title}
-          </Typography>
+            <Typography variant="h3" sx={{ fontWeight: 700, color: "#111827" }}>
+              {listing.title}
+            </Typography>
+            <FavoriteToggleButton
+              listingId={listing.id}
+              initialFavorited={listing.is_favourite}
+            />
+          </Box>
           <Box
             sx={{
               display: "flex",

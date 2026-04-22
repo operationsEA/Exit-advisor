@@ -206,6 +206,8 @@ export async function uploadAndUpdateListingImage(
   oldImageUrl,
   fileBlob,
   fileName,
+  businessCategory = "uncategorized",
+  title = "business-listing-image",
 ) {
   try {
     const supabase = await createServerSupabaseClient();
@@ -223,7 +225,7 @@ export async function uploadAndUpdateListingImage(
     if (oldImageUrl) {
       try {
         const urlParts = oldImageUrl.split(
-          "/storage/v1/object/public/listings-images/",
+          "/storage/v1/object/public/biz-bucket/",
         );
         if (urlParts.length > 1) {
           const oldFilePath = decodeURIComponent(urlParts[1]);
@@ -237,8 +239,19 @@ export async function uploadAndUpdateListingImage(
 
     // Create a unique file path
     const timestamp = Date.now();
-    const fileExt = fileName.split(".").pop();
-    const filePath = `listings/${listingId}/${timestamp}.${fileExt}`;
+    const fileExt = (fileName.split(".").pop() || "jpg").toLowerCase();
+    const sanitizedCategory = businessCategory
+      .toString()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+    const sanitizedTitle = title
+      .toString()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    const filePath = `business-for-sale/${sanitizedCategory}/${sanitizedTitle}/${listingId}/${timestamp}.${fileExt}`;
 
     // Upload new image
     const { error: uploadError } = await supabase.storage
@@ -363,12 +376,6 @@ export async function uploadAndUpdateFile(
 
     // Determine file type from extension
     const fileType = fileExt.toLowerCase();
-
-    console.log({
-      listing_id: listingId,
-      file_url: fileUrl,
-      file_type: fileType,
-    });
 
     // Insert record into listing_documents
     const { data, error: dbError } = await supabase
@@ -614,15 +621,12 @@ export async function deleteListing(listingId) {
 
 export async function getAllUniqueTags() {
   try {
-    console.log("Fetching all unique tags from listings...");
     const supabase = await createServerSupabaseClient();
 
     // Fetch all listings with tags
     const { data: listings, error } = await supabase
       .from("listings")
       .select("tags");
-
-    console.log("Fetched listings for tags:", { listings, error });
 
     if (error) {
       console.error("Error fetching tags:", error);
@@ -647,5 +651,76 @@ export async function getAllUniqueTags() {
   } catch (error) {
     console.error("Error in getAllUniqueTags:", error);
     return { error: error.message || "Failed to fetch tags" };
+  }
+}
+
+export async function getBuyerFavoriteListings() {
+  try {
+    const supabase = await createServerSupabaseClient();
+
+    // Get current user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { error: "Not authenticated" };
+    }
+
+    // Fetch user's favorite listings with all listing details
+    const { data: favorites, error } = await supabase
+      .from("favorites_listings")
+      .select(
+        `
+        id,
+        listing_id,
+        created_at,
+        listings (
+          id,
+          title,
+          user_id,
+          description,
+          business_category,
+          status,
+          min_price,
+          max_price,
+          min_revenue,
+          max_revenue,
+          country,
+          state,
+          is_sba_approved,
+          has_seller_financing,
+          is_distressed,
+          is_remote,
+          is_featured,
+          is_approved,
+          image_url,
+          created_at,
+          updated_at,
+          tags,
+          profiles:user_id (id, full_name, email, role)
+        )
+      `,
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching favorite listings:", error);
+      return { error: error.message || "Failed to fetch favorites" };
+    }
+
+    // Map favorites to listing objects with is_favourite flag
+    const favoritedListings = (favorites || [])
+      .filter((fav) => fav.listings) // Ensure listing exists
+      .map((fav) => ({
+        ...fav.listings,
+        is_favourite: true,
+      }));
+
+    return { success: true, data: favoritedListings };
+  } catch (error) {
+    console.error("Error in getBuyerFavoriteListings:", error);
+    return { error: error.message || "Failed to fetch favorite listings" };
   }
 }

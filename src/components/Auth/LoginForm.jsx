@@ -48,9 +48,6 @@ export default function LoginForm() {
         setError(result.error);
         return;
       }
-
-      // After login succeeds, manually refresh auth to update context
-      console.log("Login successful, refreshing auth...");
       await refreshAuth();
 
       // Now redirect - AuthContext will be updated

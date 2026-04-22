@@ -11,6 +11,10 @@ import COUNTRIES from "@/data/countries.json";
 export async function getPublicListings(filters = {}) {
   try {
     const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     let query = supabase
       .from("listings")
       .select(
@@ -163,9 +167,33 @@ export async function getPublicListings(filters = {}) {
       return { error: error.message, success: false };
     }
 
+    const listings = data || [];
+    let favoriteIds = new Set();
+
+    if (user?.id && listings.length > 0) {
+      const listingIds = listings.map((listing) => listing.id);
+
+      const { data: favorites, error: favoriteError } = await supabase
+        .from("favorites_listings")
+        .select("listing_id")
+        .eq("user_id", user.id)
+        .in("listing_id", listingIds);
+
+      if (favoriteError) {
+        console.error("Error fetching favorites for listings:", favoriteError);
+      } else {
+        favoriteIds = new Set((favorites || []).map((fav) => fav.listing_id));
+      }
+    }
+
+    const listingsWithFavoriteFlag = listings.map((listing) => ({
+      ...listing,
+      is_favourite: favoriteIds.has(listing.id),
+    }));
+
     return {
       success: true,
-      data: data || [],
+      data: listingsWithFavoriteFlag,
       count: count || 0,
       page,
       pageSize,
@@ -199,6 +227,9 @@ export async function getFilterOptions() {
 export async function getListingDetail(listingId) {
   try {
     const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     const { data: listing, error } = await supabase
       .from("listings")
@@ -242,7 +273,30 @@ export async function getListingDetail(listingId) {
       return { error: "Listing not found", success: false };
     }
 
-    return { success: true, data: listing };
+    let isFavourite = false;
+
+    if (user?.id && listing?.id) {
+      const { data: favorite, error: favoriteError } = await supabase
+        .from("favorites_listings")
+        .select("id")
+        .eq("listing_id", listing.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (favoriteError) {
+        console.error("Error checking listing favorite:", favoriteError);
+      } else {
+        isFavourite = Boolean(favorite);
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        ...listing,
+        is_favourite: isFavourite,
+      },
+    };
   } catch (err) {
     console.error("Error in getListingDetail:", err);
     return { error: "Failed to fetch listing detail", success: false };
@@ -274,5 +328,78 @@ export async function getListingDocumentsPublic(listingId) {
   } catch (err) {
     console.error("Error in getListingDocumentsPublic:", err);
     return { error: "Failed to fetch documents", success: false };
+  }
+}
+
+// create favorite action for listing
+export async function toggleFavorite(listingId, userId) {
+  try {
+    const supabase = await createServerSupabaseClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const currentUserId = user?.id || userId;
+
+    if (!currentUserId) {
+      return {
+        error: "Unauthorized user",
+        success: false,
+      };
+    }
+
+    // Check if already favorited
+    const { data: existing, error: checkError } = await supabase
+      .from("favorites_listings")
+      .select("id")
+      .eq("listing_id", listingId)
+      .eq("user_id", currentUserId)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("Error checking favorite status:", checkError);
+      return {
+        error: checkError.message || "Failed to check favorite status",
+        success: false,
+      };
+    }
+
+    if (existing) {
+      // If already favorited, remove from favorites
+      const { error: deleteError } = await supabase
+        .from("favorites_listings")
+        .delete()
+        .eq("listing_id", listingId)
+        .eq("user_id", currentUserId);
+
+      if (deleteError) {
+        console.error("Error removing favorite:", deleteError);
+        return {
+          error: deleteError.message || "Failed to remove favorite",
+          success: false,
+        };
+      }
+
+      return { success: true, favorited: false };
+    } else {
+      // If not favorited, add to favorites
+      const { error: insertError } = await supabase
+        .from("favorites_listings")
+        .insert({ listing_id: listingId, user_id: currentUserId });
+
+      if (insertError) {
+        console.error("Error adding favorite:", insertError);
+        return {
+          error: insertError.message || "Failed to add favorite",
+          success: false,
+        };
+      }
+
+      return { success: true, favorited: true };
+    }
+  } catch (err) {
+    console.error("Error in toggleFavorite:", err);
+    return { error: "Failed to toggle favorite status", success: false };
   }
 }

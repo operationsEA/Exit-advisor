@@ -233,6 +233,14 @@ export default function BusinessForSalePage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleFavoriteChange = (listingId, isFavourite) => {
+    setListings((prev) =>
+      prev.map((item) =>
+        item.id === listingId ? { ...item, is_favourite: isFavourite } : item,
+      ),
+    );
+  };
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
@@ -583,7 +591,10 @@ export default function BusinessForSalePage() {
               <Grid container spacing={2}>
                 {listings.map((listing) => (
                   <Grid item xs={12} sm={6} lg={4} key={listing.id}>
-                    <ListingCard listing={listing} />
+                    <ListingCard
+                      listing={listing}
+                      onFavoriteChange={handleFavoriteChange}
+                    />
                   </Grid>
                 ))}
               </Grid>
