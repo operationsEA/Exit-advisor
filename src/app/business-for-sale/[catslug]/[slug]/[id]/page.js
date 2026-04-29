@@ -5,7 +5,6 @@ import {
   Paper,
   Typography,
   Chip,
-  Button,
   Divider,
   Avatar,
 } from "@mui/material";
@@ -21,6 +20,7 @@ import {
 import { getListingDetail } from "@/app/business-for-sale/actions";
 import DescriptionToggle from "@/components/business-for-sale/DescriptionToggle";
 import FavoriteToggleButton from "@/components/business-for-sale/FavoriteToggleButton";
+import ChatWidget from "@/components/ChatSystem/ChatWidget";
 
 const STATUS_COLORS = {
   available: { bg: "#ecfdf5", text: "#065f46", label: "Available" },
@@ -414,28 +414,21 @@ export default async function ListingDetailPage(props) {
                 </Box>
               </Box>
               <Divider sx={{ my: 2 }} />
-              <Button
-                fullWidth
-                variant="contained"
-                sx={{
-                  backgroundColor: "#0884ff",
-                  textTransform: "none",
-                  mb: 1,
+              <ChatWidget
+                listing={{
+                  id: listing.id,
+                  title: listing.title,
+                  business_category: listing.business_category,
+                  image_url: listing.image_url,
                 }}
-              >
-                Contact Seller
-              </Button>
-              <Button
-                fullWidth
-                variant="outlined"
-                sx={{
-                  borderColor: "#0884ff",
-                  color: "#0884ff",
-                  textTransform: "none",
+                seller={{
+                  id: listing.profiles?.id,
+                  full_name: listing.profiles?.full_name,
+                  email: listing.profiles?.email,
+                  role: listing.profiles?.role,
+                  avatar_url: listing.profiles?.avatar_url,
                 }}
-              >
-                Request More Info
-              </Button>
+              />
             </Paper>
 
             {/* Listing Info */}
