@@ -1,6 +1,7 @@
 import ThemeRegistry from "@/theme/ThemeRegistry";
 import Navbar from "@/components/Layout/Navbar";
 import Footer from "@/components/Layout/Footer";
+import ChatWidget from "@/components/ChatSystem/ChatWidget";
 import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
 
@@ -143,6 +144,7 @@ export default function RootLayout({ children }) {
             <Navbar />
             {children}
             <Footer />
+            <ChatWidget />
           </ThemeRegistry>
         </AuthProvider>
       </body>

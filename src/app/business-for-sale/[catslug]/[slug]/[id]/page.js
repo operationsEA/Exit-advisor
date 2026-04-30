@@ -20,7 +20,7 @@ import {
 import { getListingDetail } from "@/app/business-for-sale/actions";
 import DescriptionToggle from "@/components/business-for-sale/DescriptionToggle";
 import FavoriteToggleButton from "@/components/business-for-sale/FavoriteToggleButton";
-import ChatWidget from "@/components/ChatSystem/ChatWidget";
+import ContactSellerButtons from "@/components/ChatSystem/ContactSellerButtons";
 
 const STATUS_COLORS = {
   available: { bg: "#ecfdf5", text: "#065f46", label: "Available" },
@@ -414,7 +414,7 @@ export default async function ListingDetailPage(props) {
                 </Box>
               </Box>
               <Divider sx={{ my: 2 }} />
-              <ChatWidget
+              <ContactSellerButtons
                 listing={{
                   id: listing.id,
                   title: listing.title,

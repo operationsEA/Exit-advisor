@@ -13,7 +13,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { FiArrowLeft, FiPaperclip, FiSend, FiX } from "react-icons/fi";
+import {
+  FiArrowLeft,
+  FiDownload,
+  FiPaperclip,
+  FiSend,
+  FiX,
+} from "react-icons/fi";
 
 function formatMessageTime(value) {
   return new Date(value).toLocaleTimeString([], {
@@ -37,56 +43,127 @@ export default function ChatConversationView({
   sending,
   error,
 }) {
-  const bottomRef = useRef(null);
+  const scrollRef = useRef(null);
+  const prevCountRef = useRef(0);
+
+  async function downloadFile(url, fileName) {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = fileName || "attachment";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      window.open(url, "_blank", "noreferrer");
+    }
+  }
+
   const otherUser = chat
     ? chat.buyer_id === currentUserId
       ? chat.seller
       : chat.buyer
     : null;
 
+  // Reset on chat switch so next load snaps instantly.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    prevCountRef.current = 0;
+  }, [chat?.id]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !messages.length) return;
+    const isFirst = prevCountRef.current === 0;
+    prevCountRef.current = messages.length;
+    // Instant jump on first load, smooth scroll for new messages.
+    el.scrollTop = isFirst ? el.scrollHeight : el.scrollHeight;
+    if (!isFirst) {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    } else {
+      el.scrollTop = el.scrollHeight;
+    }
   }, [messages]);
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        borderRadius: 3,
+        overflow: "hidden",
+        background:
+          "radial-gradient(circle at top, #f8fbff 0%, #f1f5f9 45%, #eef2ff 100%)",
+      }}
+    >
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: 1.5,
-          pb: 1.5,
-          borderBottom: "1px solid #e2e8f0",
+          gap: 1,
+          px: 1.25,
+          py: 1,
+          borderBottom: "1px solid #dbe5f2",
+          backgroundColor: "rgba(255,255,255,0.8)",
+          backdropFilter: "blur(8px)",
         }}
       >
-        <IconButton size="small" onClick={onBack}>
+        <IconButton
+          size="small"
+          onClick={onBack}
+          sx={{ border: "1px solid #dbe5f2", backgroundColor: "#ffffff" }}
+        >
           <FiArrowLeft size={16} />
         </IconButton>
-        <Avatar sx={{ width: 40, height: 40, bgcolor: "#0884ff" }}>
+        <Avatar
+          sx={{
+            width: 36,
+            height: 36,
+            bgcolor: "#0884ff",
+            boxShadow: "0 6px 18px rgba(8,132,255,0.35)",
+          }}
+        >
           {otherUser?.full_name?.charAt(0)?.toUpperCase() || "U"}
         </Avatar>
-        <Box sx={{ minWidth: 0 }}>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
             {otherUser?.full_name || "Conversation"}
           </Typography>
-          <Typography variant="caption" sx={{ color: "#64748b" }}>
+          <Typography
+            variant="caption"
+            sx={{ color: "#64748b", display: "block", lineHeight: 1.2 }}
+          >
             {chat?.listing?.title || "Listing chat"}
           </Typography>
         </Box>
+        <Chip
+          size="small"
+          label="Live"
+          sx={{
+            fontWeight: 700,
+            backgroundColor: "#dcfce7",
+            color: "#166534",
+            border: "1px solid #86efac",
+          }}
+        />
       </Box>
 
-      <Box sx={{ flex: 1, overflowY: "auto", py: 2, pr: 0.5 }}>
+      <Box ref={scrollRef} sx={{ flex: 1, overflowY: "auto", px: 1, py: 1.25 }}>
         {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
             <CircularProgress size={28} />
           </Box>
         ) : !messages.length ? (
           <Paper
             elevation={0}
             sx={{
-              p: 3,
+              p: 2.5,
               borderRadius: 3,
-              backgroundColor: "#f8fafc",
+              backgroundColor: "rgba(255,255,255,0.9)",
               border: "1px dashed #cbd5e1",
               textAlign: "center",
             }}
@@ -99,7 +176,7 @@ export default function ChatConversationView({
             </Typography>
           </Paper>
         ) : (
-          <Stack spacing={1.5}>
+          <Stack spacing={1}>
             {messages.map((message) => {
               const isMine = message.sender_id === currentUserId;
 
@@ -114,19 +191,30 @@ export default function ChatConversationView({
                   <Paper
                     elevation={0}
                     sx={{
-                      maxWidth: "82%",
-                      px: 1.5,
-                      py: 1.25,
-                      borderRadius: 3,
-                      backgroundColor: isMine ? "#0884ff" : "#f1f5f9",
+                      maxWidth: "85%",
+                      px: 1.35,
+                      py: 1,
+                      borderRadius: isMine
+                        ? "16px 16px 6px 16px"
+                        : "16px 16px 16px 6px",
+                      background: isMine
+                        ? "linear-gradient(135deg, #0884ff 0%, #0ea5e9 100%)"
+                        : "#ffffff",
                       color: isMine ? "#ffffff" : "#0f172a",
-                      border: isMine ? "none" : "1px solid #e2e8f0",
+                      border: isMine ? "none" : "1px solid #dbe5f2",
+                      boxShadow: isMine
+                        ? "0 10px 20px rgba(14,165,233,0.28)"
+                        : "0 6px 16px rgba(15,23,42,0.08)",
                     }}
                   >
                     {message.message && (
                       <Typography
                         variant="body2"
-                        sx={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+                        sx={{
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                          color: isMine ? "#ffffff" : "#0f172a",
+                        }}
                       >
                         {message.message}
                       </Typography>
@@ -135,23 +223,75 @@ export default function ChatConversationView({
                     {message.attachments?.length > 0 && (
                       <Stack spacing={1} sx={{ mt: message.message ? 1 : 0 }}>
                         {message.attachments.map((attachment) => (
-                          <Button
+                          <Box
                             key={attachment.id}
-                            href={attachment.file_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            variant="outlined"
                             sx={{
-                              justifyContent: "flex-start",
-                              textTransform: "none",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                              borderRadius: 2.5,
+                              border: "1px solid",
                               borderColor: isMine
                                 ? "rgba(255,255,255,0.35)"
-                                : "#cbd5e1",
-                              color: isMine ? "#ffffff" : "#0f172a",
+                                : "#bfdbfe",
+                              backgroundColor: isMine
+                                ? "rgba(255,255,255,0.08)"
+                                : "#eff6ff",
+                              overflow: "hidden",
                             }}
                           >
-                            {attachment.file_name || "Attachment"}
-                          </Button>
+                            <Button
+                              component="a"
+                              href={attachment.file_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              variant="text"
+                              size="small"
+                              sx={{
+                                flex: 1,
+                                justifyContent: "flex-start",
+                                textTransform: "none",
+                                borderRadius: 0,
+                                color: isMine ? "#ffffff" : "#0f172a",
+                                px: 1.25,
+                                py: 0.75,
+                                minWidth: 0,
+                                overflow: "hidden",
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {attachment.file_name || "Attachment"}
+                            </Button>
+                            <IconButton
+                              onClick={() =>
+                                downloadFile(
+                                  attachment.file_url,
+                                  attachment.file_name,
+                                )
+                              }
+                              size="small"
+                              sx={{
+                                color: isMine
+                                  ? "rgba(255,255,255,0.85)"
+                                  : "#0884ff",
+                                borderRadius: 0,
+                                px: 1,
+                                py: 0.75,
+                                borderLeft: "1px solid",
+                                borderColor: isMine
+                                  ? "rgba(255,255,255,0.2)"
+                                  : "#bfdbfe",
+                                "&:hover": {
+                                  backgroundColor: isMine
+                                    ? "rgba(255,255,255,0.15)"
+                                    : "#dbeafe",
+                                },
+                              }}
+                            >
+                              <FiDownload size={13} />
+                            </IconButton>
+                          </Box>
                         ))}
                       </Stack>
                     )}
@@ -160,9 +300,10 @@ export default function ChatConversationView({
                       variant="caption"
                       sx={{
                         display: "block",
-                        mt: 0.75,
-                        opacity: 0.8,
+                        mt: 0.5,
+                        opacity: 0.78,
                         textAlign: "right",
+                        fontSize: "0.525rem",
                       }}
                     >
                       {formatMessageTime(message.created_at)}
@@ -171,12 +312,18 @@ export default function ChatConversationView({
                 </Box>
               );
             })}
-            <div ref={bottomRef} />
           </Stack>
         )}
       </Box>
 
-      <Box sx={{ pt: 1.5, borderTop: "1px solid #e2e8f0" }}>
+      <Box
+        sx={{
+          p: 1,
+          borderTop: "1px solid #dbe5f2",
+          backgroundColor: "rgba(255,255,255,0.9)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
         {error && (
           <Typography
             variant="caption"
@@ -206,19 +353,36 @@ export default function ChatConversationView({
           </Stack>
         )}
 
-        <Box sx={{ display: "flex", gap: 1, alignItems: "flex-end" }}>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "flex-end", pt: 1 }}>
           <TextField
             fullWidth
             multiline
-            minRows={2}
-            maxRows={5}
+            minRows={1}
+            maxRows={4}
             placeholder="Type your message..."
             value={draft}
             onChange={(event) => onDraftChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                onSend();
+              }
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 3,
+                padding: 1,
+                backgroundColor: "#ffffff",
+              },
+            }}
           />
           <IconButton
             onClick={onOpenFilePicker}
-            sx={{ border: "1px solid #cbd5e1" }}
+            sx={{
+              border: "1px solid #cbd5e1",
+              backgroundColor: "#ffffff",
+              borderRadius: 2.5,
+            }}
           >
             <FiPaperclip size={18} />
           </IconButton>
@@ -226,8 +390,9 @@ export default function ChatConversationView({
             onClick={onSend}
             disabled={sending}
             sx={{
-              backgroundColor: "#0884ff",
+              background: "linear-gradient(135deg, #0884ff 0%, #0ea5e9 100%)",
               color: "#ffffff",
+              borderRadius: 2.5,
               "&:hover": { backgroundColor: "#0670d6" },
               "&.Mui-disabled": {
                 backgroundColor: "#bfdbfe",

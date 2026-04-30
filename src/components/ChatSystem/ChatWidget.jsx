@@ -25,6 +25,8 @@ import {
   subscribeToUserChats,
 } from "./chatClient";
 
+const OPEN_LISTING_CHAT_EVENT = "chat-widget:open-listing";
+
 function sortChats(chats) {
   return [...chats].sort((left, right) => {
     const rightTime = right.last_message_at || right.created_at;
@@ -33,7 +35,7 @@ function sortChats(chats) {
   });
 }
 
-export default function ChatWidget({ listing, seller }) {
+export default function ChatWidget() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, isAuth, isLoading: isAuthLoading } = useAuth();
@@ -55,6 +57,8 @@ export default function ChatWidget({ listing, seller }) {
     const next = pathname || "/business-for-sale";
     router.push(`/auth/login?next=${encodeURIComponent(next)}`);
   }, [pathname, router]);
+
+  console.log({ chats });
 
   const fetchChats = useCallback(async () => {
     if (!user?.id) return;
@@ -97,7 +101,7 @@ export default function ChatWidget({ listing, seller }) {
   }, []);
 
   const openChatForListing = useCallback(
-    async (presetMessage = "") => {
+    async ({ listing, seller, presetMessage = "" } = {}) => {
       if (isAuthLoading) return;
       if (!isAuth) {
         handleRequireAuth();
@@ -108,7 +112,7 @@ export default function ChatWidget({ listing, seller }) {
 
       if (!listing?.id || !seller?.id || seller.id === user?.id) {
         setView("list");
-        fetchChats();
+        await fetchChats();
         if (presetMessage) {
           setDraft(presetMessage);
         }
@@ -124,7 +128,7 @@ export default function ChatWidget({ listing, seller }) {
       if (!result?.success) {
         setWidgetError(result?.error || "Failed to open chat");
         setView("list");
-        fetchChats();
+        await fetchChats();
         return;
       }
 
@@ -133,20 +137,31 @@ export default function ChatWidget({ listing, seller }) {
       setView("chat");
       setDraft(presetMessage);
       await loadMessages(result.data.id);
-      fetchChats();
+      await fetchChats();
     },
     [
       fetchChats,
       handleRequireAuth,
       isAuth,
       isAuthLoading,
-      listing?.id,
       loadMessages,
-      seller?.id,
       upsertChat,
       user?.id,
     ],
   );
+
+  const openChatInbox = useCallback(async () => {
+    if (isAuthLoading) return;
+    if (!isAuth) {
+      handleRequireAuth();
+      return;
+    }
+
+    setIsOpen(true);
+    setView("list");
+    setWidgetError("");
+    await fetchChats();
+  }, [fetchChats, handleRequireAuth, isAuth, isAuthLoading]);
 
   const handleSelectChat = useCallback(
     async (chat) => {
@@ -218,38 +233,46 @@ export default function ChatWidget({ listing, seller }) {
     return unsubscribe;
   }, [activeChat?.id, fetchChats, isOpen, loadMessages]);
 
+  useEffect(() => {
+    const handleOpenListingChat = (event) => {
+      const detail = event?.detail || {};
+      openChatForListing(detail);
+    };
+
+    window.addEventListener(OPEN_LISTING_CHAT_EVENT, handleOpenListingChat);
+    return () => {
+      window.removeEventListener(
+        OPEN_LISTING_CHAT_EVENT,
+        handleOpenListingChat,
+      );
+    };
+  }, [openChatForListing]);
+
   return (
     <>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-        <Button
-          fullWidth
-          variant="contained"
-          onClick={() => openChatForListing("")}
+      {!isOpen && (
+        <IconButton
+          aria-label="Open chat inbox"
+          onClick={openChatInbox}
           sx={{
+            position: "fixed",
+            right: { xs: 12, sm: 24 },
+            bottom: { xs: 12, sm: 24 },
+            zIndex: 1400,
+            width: 56,
+            height: 56,
             backgroundColor: "#0884ff",
-            textTransform: "none",
-            mb: 1,
+            color: "#ffffff",
+            border: "1px solid #0284c7",
+            boxShadow: "0 14px 30px rgba(8,132,255,0.3)",
+            "&:hover": {
+              backgroundColor: "#0b74dd",
+            },
           }}
         >
-          Contact Seller
-        </Button>
-        <Button
-          fullWidth
-          variant="outlined"
-          onClick={() =>
-            openChatForListing(
-              `Hi, I would like more information about ${listing?.title || "this listing"}.`,
-            )
-          }
-          sx={{
-            borderColor: "#0884ff",
-            color: "#0884ff",
-            textTransform: "none",
-          }}
-        >
-          Request More Info
-        </Button>
-      </Box>
+          <FiMessageCircle size={22} />
+        </IconButton>
+      )}
 
       {isOpen && (
         <Paper
@@ -284,7 +307,9 @@ export default function ChatWidget({ listing, seller }) {
                 <FiMessageCircle size={18} />
               </Badge>
               <Box>
-                <Typography sx={{ fontWeight: 700, lineHeight: 1.1 }}>
+                <Typography
+                  sx={{ fontWeight: 700, lineHeight: 1.1, color: "#ffffff" }}
+                >
                   Messages
                 </Typography>
                 <Typography variant="caption" sx={{ opacity: 0.85 }}>
@@ -298,7 +323,10 @@ export default function ChatWidget({ listing, seller }) {
               {view === "chat" && (
                 <IconButton
                   size="small"
-                  onClick={() => setView("list")}
+                  onClick={() => {
+                    setView("list");
+                    setActiveChat(null);
+                  }}
                   sx={{ color: "#ffffff" }}
                 >
                   <FiMinimize2 size={16} />
@@ -356,7 +384,7 @@ export default function ChatWidget({ listing, seller }) {
                   </Typography>
                 )}
                 <Typography sx={{ fontWeight: 700, color: "#0f172a", mb: 1.5 }}>
-                  Conversations
+                  Chats
                 </Typography>
                 <Divider sx={{ mb: 1.5 }} />
                 <Box sx={{ flex: 1, overflowY: "auto" }}>

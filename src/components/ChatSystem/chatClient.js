@@ -156,15 +156,25 @@ export async function getUserChats() {
     const sortedMessages = [...(chat.messages || [])].sort(
       (left, right) => new Date(right.created_at) - new Date(left.created_at),
     );
+    const unread_count = (chat.messages || []).filter(
+      (message) => !message.is_seen && message.sender_id !== userId,
+    ).length;
 
     return {
       ...chat,
       last_message: sortedMessages[0] || null,
+      unread_count,
       messages: undefined,
     };
   });
 
-  return { success: true, data: chats };
+  const orderedChats = [...chats].sort((left, right) => {
+    const rightTime = right.last_message_at || right.created_at;
+    const leftTime = left.last_message_at || left.created_at;
+    return new Date(rightTime) - new Date(leftTime);
+  });
+
+  return { success: true, data: orderedChats };
 }
 
 export async function readMessages(chatId) {
@@ -289,8 +299,6 @@ export async function sendMessage({
     messageType ||
     (files.length > 0 ? (text ? "mixed" : "attachment") : "text");
 
-  const now = new Date().toISOString();
-
   const { data: createdMessage, error: createError } = await supabase
     .from("messages")
     .insert({
@@ -300,7 +308,7 @@ export async function sendMessage({
       is_admin: false,
       message_type: resolvedMessageType,
     })
-    .select("id")
+    .select("id, created_at")
     .single();
 
   if (createError) {
@@ -344,7 +352,7 @@ export async function sendMessage({
 
   const { error: chatError } = await supabase
     .from("chat")
-    .update({ last_message_at: now })
+    .update({ last_message_at: createdMessage.created_at })
     .eq("id", chatId);
 
   if (chatError) {
@@ -403,9 +411,9 @@ export async function markAsSeen(chatId) {
     return { error: "chatId is required", success: false };
   }
 
-  const { error } = await supabase
+  const { error, count } = await supabase
     .from("messages")
-    .update({ is_seen: true })
+    .update({ is_seen: true }, { count: "exact" })
     .eq("chat_id", chatId)
     .eq("is_seen", false)
     .neq("sender_id", auth.user.id);
@@ -417,11 +425,7 @@ export async function markAsSeen(chatId) {
     };
   }
 
-  return { success: true };
-}
-
-export async function markAsSean(chatId) {
-  return markAsSeen(chatId);
+  return { success: true, count };
 }
 
 export function subscribeToUserChats(userId, onChange) {

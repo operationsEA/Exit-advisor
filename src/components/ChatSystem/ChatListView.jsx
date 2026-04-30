@@ -2,6 +2,7 @@
 
 import {
   Avatar,
+  Badge,
   Box,
   CircularProgress,
   List,
@@ -37,10 +38,10 @@ export default function ChatListView({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          py: 6,
+          py: 5,
         }}
       >
-        <CircularProgress size={28} />
+        <CircularProgress size={26} sx={{ color: "#0ea5e9" }} />
       </Box>
     );
   }
@@ -50,18 +51,20 @@ export default function ChatListView({
       <Paper
         elevation={0}
         sx={{
-          py: 6,
+          py: 5,
           px: 3,
           textAlign: "center",
-          backgroundColor: "#f8fafc",
-          border: "1px dashed #cbd5e1",
-          borderRadius: 3,
+          background:
+            "linear-gradient(145deg, rgba(239,246,255,0.95), rgba(248,250,252,0.95))",
+          border: "1px dashed #b6cced",
+          borderRadius: 3.5,
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
         }}
       >
-        <Typography sx={{ fontWeight: 700, color: "#0f172a", mb: 1 }}>
+        <Typography sx={{ fontWeight: 800, color: "#0f172a", mb: 1 }}>
           No conversations yet
         </Typography>
-        <Typography variant="body2" sx={{ color: "#64748b" }}>
+        <Typography variant="body2" sx={{ color: "#475569" }}>
           Start a chat from a listing page to message a seller instantly.
         </Typography>
       </Paper>
@@ -71,7 +74,7 @@ export default function ChatListView({
   return (
     <List
       disablePadding
-      sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+      sx={{ display: "flex", flexDirection: "column", gap: 1.1 }}
     >
       {chats.map((chat) => {
         const otherUser =
@@ -84,16 +87,66 @@ export default function ChatListView({
             onClick={() => onSelectChat(chat)}
             sx={{
               alignItems: "flex-start",
-              borderRadius: 3,
-              border: isActive ? "1px solid #93c5fd" : "1px solid #e2e8f0",
-              backgroundColor: isActive ? "#eff6ff" : "#ffffff",
-              px: 1.5,
-              py: 1.25,
+              borderRadius: 1,
+              border: isActive ? "1px solid #7dd3fc" : "1px solid #dbe5f2",
+              background: isActive
+                ? "linear-gradient(135deg, #eff6ff 0%, #ecfeff 100%)"
+                : "rgba(255,255,255,0.88)",
+              px: 1.35,
+              py: 1.15,
+              backdropFilter: "blur(6px)",
+              boxShadow: isActive
+                ? "0 12px 24px rgba(14,165,233,0.18)"
+                : "0 4px 12px rgba(15,23,42,0.06)",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                borderColor: isActive ? "#38bdf8" : "#bfdbfe",
+                background: isActive
+                  ? "linear-gradient(135deg, #e0f2fe 0%, #ecfeff 100%)"
+                  : "#f8fafc",
+                transform: "translateY(-1px)",
+                boxShadow: "0 10px 22px rgba(15,23,42,0.10)",
+              },
             }}
           >
-            <Avatar sx={{ width: 40, height: 40, mr: 1.5, bgcolor: "#0884ff" }}>
-              {otherUser?.full_name?.charAt(0)?.toUpperCase() || "U"}
-            </Avatar>
+            <Badge
+              badgeContent={
+                chat.unread_count > 0
+                  ? chat.unread_count > 99
+                    ? "99+"
+                    : chat.unread_count
+                  : 0
+              }
+              color="error"
+              overlap="circular"
+              anchorOrigin={{ vertical: "top", horizontal: "right" }}
+              sx={{
+                mr: 1.35,
+                "& .MuiBadge-badge": {
+                  fontWeight: 700,
+                  minWidth: 18,
+                  height: 18,
+                  fontSize: "0.65rem",
+                  borderRadius: 9,
+                  backgroundColor: "#ef4444",
+                  border: "2px solid #fff",
+                  boxShadow: "0 2px 6px rgba(239,68,68,0.5)",
+                },
+              }}
+            >
+              <Avatar
+                sx={{
+                  width: 42,
+                  height: 42,
+                  fontWeight: 700,
+                  bgcolor: "#0284c7",
+                  border: "2px solid #e0f2fe",
+                  boxShadow: "0 6px 18px rgba(2,132,199,0.25)",
+                }}
+              >
+                {otherUser?.full_name?.charAt(0)?.toUpperCase() || "U"}
+              </Avatar>
+            </Badge>
             <ListItemText
               primary={
                 <Box
@@ -104,26 +157,36 @@ export default function ChatListView({
                     alignItems: "flex-start",
                   }}
                 >
-                  <Box>
-                    <Typography
-                      sx={{
-                        fontWeight: 700,
-                        color: "#0f172a",
-                        lineHeight: 1.2,
-                      }}
-                    >
-                      {otherUser?.full_name || "Unknown user"}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{ color: "#0284c7", textTransform: "capitalize" }}
-                    >
-                      {otherUser?.role || "user"}
-                    </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontWeight: 800,
+                          color: "#0f172a",
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {otherUser?.full_name || "Unknown user"}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "#0ea5e9",
+                          textTransform: "capitalize",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {otherUser?.role || "user"}
+                      </Typography>
+                    </Box>
                   </Box>
                   <Typography
                     variant="caption"
-                    sx={{ color: "#94a3b8", whiteSpace: "nowrap" }}
+                    sx={{
+                      color: "#64748b",
+                      whiteSpace: "nowrap",
+                      fontWeight: 600,
+                    }}
                   >
                     {formatTimestamp(chat.last_message_at || chat.created_at)}
                   </Typography>
@@ -133,19 +196,20 @@ export default function ChatListView({
                 <Box sx={{ mt: 0.5 }}>
                   <Typography
                     variant="body2"
-                    sx={{ color: "#334155", fontWeight: 600, mb: 0.5 }}
+                    sx={{ color: "#334155", fontWeight: 700, mb: 0.45 }}
                   >
                     {chat.listing?.title || "Listing conversation"}
                   </Typography>
                   <Typography
                     variant="caption"
                     sx={{
-                      color: "#64748b",
+                      color: "#475569",
                       display: "block",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
                       maxWidth: 240,
+                      fontWeight: 500,
                     }}
                   >
                     {chat.last_message?.message ||
