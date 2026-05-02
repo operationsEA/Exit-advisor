@@ -144,7 +144,7 @@ export default function RootLayout({ children }) {
             <Navbar />
             {children}
             <Footer />
-            <ChatWidget />
+            {/* <ChatWidget /> */}
           </ThemeRegistry>
         </AuthProvider>
       </body>

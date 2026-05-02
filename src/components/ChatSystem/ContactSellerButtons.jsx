@@ -1,20 +1,43 @@
 "use client";
 
+import { useState } from "react";
 import { Box, Button } from "@mui/material";
-
-const OPEN_LISTING_CHAT_EVENT = "chat-widget:open-listing";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { createChat } from "@/components/ChatSystem/chatClient";
 
 export default function ContactSellerButtons({ listing, seller }) {
-  const dispatchOpenChat = (presetMessage = "") => {
-    window.dispatchEvent(
-      new CustomEvent(OPEN_LISTING_CHAT_EVENT, {
-        detail: {
-          listing,
-          seller,
-          presetMessage,
-        },
-      }),
-    );
+  const router = useRouter();
+  const { isAuth, isLoading } = useAuth();
+  const [opening, setOpening] = useState(false);
+
+  const openChatInDashboard = async (presetMessage = "") => {
+    if (isLoading || opening) return;
+
+    if (!isAuth) {
+      router.push(`/auth/login?next=${encodeURIComponent("/dashboard/chats")}`);
+      return;
+    }
+
+    if (!listing?.id || !seller?.id) return;
+
+    setOpening(true);
+    const result = await createChat({
+      listingId: listing.id,
+      sellerId: seller.id,
+    });
+
+    if (!result?.success || !result?.data?.id) {
+      setOpening(false);
+      return;
+    }
+
+    const query = presetMessage
+      ? `?preset=${encodeURIComponent(presetMessage)}`
+      : "";
+
+    router.push(`/dashboard/chats/${result.data.id}${query}`);
+    setOpening(false);
   };
 
   return (
@@ -22,7 +45,8 @@ export default function ContactSellerButtons({ listing, seller }) {
       <Button
         fullWidth
         variant="contained"
-        onClick={() => dispatchOpenChat("")}
+        onClick={() => openChatInDashboard("")}
+        disabled={opening || isLoading}
         sx={{
           backgroundColor: "#0884ff",
           textTransform: "none",
@@ -34,8 +58,9 @@ export default function ContactSellerButtons({ listing, seller }) {
       <Button
         fullWidth
         variant="outlined"
+        disabled={opening || isLoading}
         onClick={() =>
-          dispatchOpenChat(
+          openChatInDashboard(
             `Hi, I would like more information about ${listing?.title || "this listing"}.`,
           )
         }

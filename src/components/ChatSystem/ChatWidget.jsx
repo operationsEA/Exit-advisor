@@ -58,8 +58,6 @@ export default function ChatWidget() {
     router.push(`/auth/login?next=${encodeURIComponent(next)}`);
   }, [pathname, router]);
 
-  console.log({ chats });
-
   const fetchChats = useCallback(async () => {
     if (!user?.id) return;
 
