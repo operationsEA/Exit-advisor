@@ -82,16 +82,31 @@ CREATE TABLE public.listings (
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   image_url text,
+  tags jsonb,
   CONSTRAINT listings_pkey PRIMARY KEY (id),
   CONSTRAINT Listings_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.message_attachments (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  message_id bigint NOT NULL,
+  file_url text NOT NULL,
+  file_type text,
+  file_name text,
+  file_size bigint,
+  mime_type text,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT message_attachments_pkey PRIMARY KEY (id),
+  CONSTRAINT message_attachments_message_id_fkey FOREIGN KEY (message_id) REFERENCES public.messages(id)
 );
 CREATE TABLE public.messages (
   id bigint NOT NULL DEFAULT nextval('"Messages_id_seq"'::regclass),
   chat_id bigint NOT NULL,
   sender_id uuid NOT NULL,
-  message text NOT NULL,
+  message text,
   is_admin boolean DEFAULT false,
+  is_seen boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  message_type text DEFAULT 'text'::text,
   CONSTRAINT messages_pkey PRIMARY KEY (id),
   CONSTRAINT Messages_chat_id_fkey FOREIGN KEY (chat_id) REFERENCES public.chat(id),
   CONSTRAINT Messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.profiles(id)
