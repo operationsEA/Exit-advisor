@@ -127,6 +127,20 @@ export async function getPublicListings(filters = {}) {
       }
     }
 
+    // Employee range filter
+    if (
+      filters.minNoOfEmployees !== undefined ||
+      filters.maxNoOfEmployees !== undefined
+    ) {
+      if (filters.minNoOfEmployees !== undefined) {
+        query = query.gte("no_of_employees", filters.minNoOfEmployees);
+      }
+
+      if (filters.maxNoOfEmployees !== undefined) {
+        query = query.lte("no_of_employees", filters.maxNoOfEmployees);
+      }
+    }
+
     // Feature filter
     if (filters.featured === true) {
       query = query.eq("is_featured", true);
