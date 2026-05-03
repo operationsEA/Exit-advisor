@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Drawer,
   Box,
@@ -23,14 +23,14 @@ import {
 } from "@mui/material";
 import { FiX, FiTrash2 } from "react-icons/fi";
 import { MdCheckCircle } from "react-icons/md";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { Country, City } from "country-state-city";
 import {
   listingEditSchema,
   BUSINESS_CATEGORIES,
   STATUS_OPTIONS,
 } from "./listingSchema";
-import COUNTRIES from "@/data/countries.json";
 import {
   createListing,
   getAllUniqueTags,
@@ -104,6 +104,7 @@ export default function EditListingSlide({
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm({
     resolver: yupResolver(listingEditSchema),
     defaultValues: {
@@ -128,6 +129,38 @@ export default function EditListingSlide({
     },
   });
 
+  const selectedCountryName = useWatch({ control, name: "country" });
+  const selectedCityName = useWatch({ control, name: "state" });
+
+  const countryOptions = useMemo(() => Country.getAllCountries(), []);
+  const selectedCountry = useMemo(
+    () =>
+      countryOptions.find((country) => country.name === selectedCountryName),
+    [countryOptions, selectedCountryName],
+  );
+  const cityOptions = useMemo(() => {
+    if (!selectedCountry?.isoCode) return [];
+    return City.getCitiesOfCountry(selectedCountry.isoCode);
+  }, [selectedCountry?.isoCode]);
+
+  useEffect(() => {
+    if (!selectedCountryName) {
+      if (selectedCityName) {
+        setValue("state", "", { shouldValidate: true });
+      }
+      return;
+    }
+
+    if (!selectedCityName) return;
+
+    const cityExists = cityOptions.some(
+      (city) => city.name === selectedCityName,
+    );
+    if (!cityExists) {
+      setValue("state", "", { shouldValidate: true });
+    }
+  }, [cityOptions, selectedCityName, selectedCountryName, setValue]);
+
   const onSubmit = async (data) => {
     try {
       setIsLoading(true);
@@ -142,7 +175,11 @@ export default function EditListingSlide({
           }))
           .filter((item) => item.text && item.link);
 
-        const result = await createListing({ ...data, tags, links: sanitizedLinks });
+        const result = await createListing({
+          ...data,
+          tags,
+          links: sanitizedLinks,
+        });
         if (result?.error) {
           setErrorMessage(result.error);
           return;
@@ -615,7 +652,7 @@ export default function EditListingSlide({
             variant="subtitle2"
             sx={{ fontWeight: 600, mb: 1.5, color: "#111827" }}
           >
-            Location
+            Country & City
           </Typography>
           <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={6}>
@@ -631,9 +668,9 @@ export default function EditListingSlide({
                   >
                     <InputLabel>Country</InputLabel>
                     <Select {...field} label="Country">
-                      {COUNTRIES.map((country) => (
-                        <MenuItem key={country} value={country}>
-                          {country}
+                      {countryOptions.map((country) => (
+                        <MenuItem key={country.isoCode} value={country.name}>
+                          {country.name}
                         </MenuItem>
                       ))}
                     </Select>
@@ -646,13 +683,29 @@ export default function EditListingSlide({
                 name="state"
                 control={control}
                 render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="State"
+                  <FormControl
                     fullWidth
                     size="small"
-                    disabled={isViewMode}
-                  />
+                    disabled={isViewMode || !selectedCountryName}
+                    error={!!errors.state}
+                  >
+                    <InputLabel>City</InputLabel>
+                    <Select {...field} label="City">
+                      {selectedCountryName && cityOptions.length === 0 && (
+                        <MenuItem disabled value="">
+                          No cities available
+                        </MenuItem>
+                      )}
+                      {cityOptions.map((city) => (
+                        <MenuItem
+                          key={`${city.countryCode}-${city.name}`}
+                          value={city.name}
+                        >
+                          {city.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 )}
               />
             </Grid>
@@ -804,11 +857,21 @@ export default function EditListingSlide({
           </Box>
 
           {links.length === 0 ? (
-            <Typography variant="caption" sx={{ color: "#9ca3af", mb: 2, display: "block" }}>
+            <Typography
+              variant="caption"
+              sx={{ color: "#9ca3af", mb: 2, display: "block" }}
+            >
               No external links added.
             </Typography>
           ) : (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25, mb: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 1.25,
+                mb: 2,
+              }}
+            >
               {links.map((item, index) => (
                 <Grid container spacing={1} key={`listing-link-${index}`}>
                   <Grid item xs={12} sm={4}>
