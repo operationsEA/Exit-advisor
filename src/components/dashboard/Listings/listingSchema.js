@@ -55,6 +55,31 @@ export const listingEditSchema = yup.object().shape({
       },
     ),
 
+  min_cashflow: yup
+    .number()
+    .min(0, "Minimum cashflow must be positive")
+    .nullable(),
+
+  max_cashflow: yup
+    .number()
+    .min(0, "Maximum cashflow must be positive")
+    .nullable()
+    .test(
+      "max-cashflow-greater-than-min",
+      "Max cashflow must be greater than min cashflow",
+      function (value) {
+        const { min_cashflow } = this.parent;
+        if (!value || !min_cashflow) return true;
+        return value >= min_cashflow;
+      },
+    ),
+
+  no_of_employees: yup
+    .number()
+    .integer("Number of employees must be a whole number")
+    .min(0, "Number of employees cannot be negative")
+    .nullable(),
+
   country: yup.string().nullable(),
 
   state: yup.string().nullable(),
@@ -69,6 +94,21 @@ export const listingEditSchema = yup.object().shape({
     .array()
     .of(yup.string())
     .max(8, "Maximum 8 tags allowed")
+    .default([]),
+
+  links: yup
+    .array()
+    .of(
+      yup.object({
+        text: yup.string().trim().required("Link text is required"),
+        link: yup
+          .string()
+          .trim()
+          .url("Please enter a valid URL")
+          .required("URL is required"),
+      }),
+    )
+    .max(10, "Maximum 10 links allowed")
     .default([]),
 });
 

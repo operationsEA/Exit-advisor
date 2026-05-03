@@ -29,6 +29,7 @@ export async function getPublicListings(filters = {}) {
         max_revenue,
         min_cashflow,
         max_cashflow,
+        no_of_employees,
         country,
         state,
         is_sba_approved,
@@ -245,6 +246,7 @@ export async function getListingDetail(listingId) {
         max_revenue,
         min_cashflow,
         max_cashflow,
+        no_of_employees,
         country,
         state,
         is_sba_approved,
@@ -260,6 +262,7 @@ export async function getListingDetail(listingId) {
         updated_at,
         user_id,
         tags,
+        links,
         profiles:user_id(id, full_name, email, role, avatar_url)
       `,
       )

@@ -62,6 +62,7 @@ export default async function ListingDetailPage(props) {
   }
 
   const listing = listingResult.data;
+  console.log({ listing });
 
   const priceDisplay =
     listing.min_price && listing.max_price
@@ -86,6 +87,11 @@ export default async function ListingDetailPage(props) {
 
   const statusInfo = STATUS_COLORS[listing.status] || STATUS_COLORS.available;
   const location = [listing.state, listing.country].filter(Boolean).join(", ");
+  const validLinks = Array.isArray(listing.links)
+    ? listing.links.filter(
+        (item) => item && typeof item === "object" && item.link && item.text,
+      )
+    : [];
 
   return (
     <div suppressHydrationWarning>
@@ -290,7 +296,7 @@ export default async function ListingDetailPage(props) {
                           variant="caption"
                           sx={{ fontWeight: 600, color: "#6b7280" }}
                         >
-                          Annual Revenue
+                          Revenue
                         </Typography>
                       </Box>
                       <Typography
@@ -325,7 +331,7 @@ export default async function ListingDetailPage(props) {
                           variant="caption"
                           sx={{ fontWeight: 600, color: "#6b7280" }}
                         >
-                          Annual Cashflow
+                          Cashflow
                         </Typography>
                       </Box>
                       <Typography
@@ -362,6 +368,42 @@ export default async function ListingDetailPage(props) {
                 )}
               </Box>
             </Paper>
+
+            {/* External Links */}
+            {validLinks.length > 0 && (
+              <Paper sx={{ p: 3, mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                  External Links
+                </Typography>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                  {validLinks.map((item, index) => (
+                    <Link
+                      key={`${item.link}-${index}`}
+                      href={item.link}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ textDecoration: "none" }}
+                    >
+                      <Chip
+                        label={item.text}
+                        clickable
+                        sx={{
+                          justifyContent: "flex-start",
+                          width: "100%",
+                          backgroundColor: "#eff6ff",
+                          border: "1px solid #bfdbfe",
+                          color: "#1d4ed8",
+                          fontWeight: 600,
+                          "&:hover": {
+                            backgroundColor: "#dbeafe",
+                          },
+                        }}
+                      />
+                    </Link>
+                  ))}
+                </Box>
+              </Paper>
+            )}
           </Grid>
 
           {/* Sidebar */}
@@ -474,6 +516,20 @@ export default async function ListingDetailPage(props) {
                   </Typography>
                   <Typography sx={{ fontWeight: 600 }}>{location}</Typography>
                 </Box>
+                {listing.no_of_employees !== null &&
+                  listing.no_of_employees !== undefined && (
+                    <Box sx={{ pb: 1.5 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ fontWeight: 600, color: "#6b7280" }}
+                      >
+                        No. of Employees
+                      </Typography>
+                      <Typography sx={{ fontWeight: 600 }}>
+                        {listing.no_of_employees}
+                      </Typography>
+                    </Box>
+                  )}
                 {listing.ffe && (
                   <Box sx={{ pb: 1.5 }}>
                     <Typography

@@ -54,6 +54,7 @@ export default function EditListingSlide({
   const [tagInput, setTagInput] = useState("");
   const [tagSuggestions, setTagSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(true);
+  const [links, setLinks] = useState(listing?.links || []);
 
   // Fetch unique tags from all listings
   useEffect(() => {
@@ -77,6 +78,22 @@ export default function EditListingSlide({
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
+  const handleAddLink = () => {
+    setLinks((prev) => [...prev, { text: "", link: "" }]);
+  };
+
+  const handleUpdateLink = (index, key, value) => {
+    setLinks((prev) =>
+      prev.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [key]: value } : item,
+      ),
+    );
+  };
+
+  const handleRemoveLink = (index) => {
+    setLinks((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
+  };
+
   const availableTags = tagSuggestions.filter((tag) => !tags.includes(tag));
 
   const isViewMode = mode === "view";
@@ -98,6 +115,9 @@ export default function EditListingSlide({
       max_price: listing?.max_price || null,
       min_revenue: listing?.min_revenue || null,
       max_revenue: listing?.max_revenue || null,
+      min_cashflow: listing?.min_cashflow || null,
+      max_cashflow: listing?.max_cashflow || null,
+      no_of_employees: listing?.no_of_employees || null,
       country: listing?.country || "",
       state: listing?.state || "",
       is_sba_approved: listing?.is_sba_approved || false,
@@ -115,15 +135,29 @@ export default function EditListingSlide({
       setSuccessMessage("");
 
       if (isNewMode) {
-        const result = await createListing({ ...data, tags });
+        const sanitizedLinks = links
+          .map((item) => ({
+            text: item?.text?.trim() || "",
+            link: item?.link?.trim() || "",
+          }))
+          .filter((item) => item.text && item.link);
+
+        const result = await createListing({ ...data, tags, links: sanitizedLinks });
         if (result?.error) {
           setErrorMessage(result.error);
           return;
         }
         setSuccessMessage("Listing submitted for approval!");
-        onSave && onSave({ ...result.data, tags });
+        onSave && onSave({ ...result.data, tags, links: sanitizedLinks });
       } else {
-        await onSave({ ...data, tags });
+        const sanitizedLinks = links
+          .map((item) => ({
+            text: item?.text?.trim() || "",
+            link: item?.link?.trim() || "",
+          }))
+          .filter((item) => item.text && item.link);
+
+        await onSave({ ...data, tags, links: sanitizedLinks });
         setSuccessMessage("Listing updated successfully!");
       }
 
@@ -142,6 +176,7 @@ export default function EditListingSlide({
     reset();
     setTags([]);
     setTagInput("");
+    setLinks(listing?.links || []);
     setSuccessMessage("");
     setErrorMessage("");
     setIsApproved(listing?.is_approved || false);
@@ -501,6 +536,80 @@ export default function EditListingSlide({
             </Grid>
           </Grid>
 
+          {/* Cashflow Range */}
+          <Typography
+            variant="subtitle2"
+            sx={{ fontWeight: 600, mb: 1.5, color: "#111827" }}
+          >
+            Cashflow Range
+          </Typography>
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={6}>
+              <Controller
+                name="min_cashflow"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Min Cashflow"
+                    type="number"
+                    fullWidth
+                    size="small"
+                    disabled={isViewMode}
+                    error={!!errors.min_cashflow}
+                    helperText={errors.min_cashflow?.message}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <Controller
+                name="max_cashflow"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Max Cashflow"
+                    type="number"
+                    fullWidth
+                    size="small"
+                    disabled={isViewMode}
+                    error={!!errors.max_cashflow}
+                    helperText={errors.max_cashflow?.message}
+                  />
+                )}
+              />
+            </Grid>
+          </Grid>
+
+          {/* Team Size */}
+          <Typography
+            variant="subtitle2"
+            sx={{ fontWeight: 600, mb: 1.5, color: "#111827" }}
+          >
+            Team Details
+          </Typography>
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={6}>
+              <Controller
+                name="no_of_employees"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="No. of Employees"
+                    type="number"
+                    fullWidth
+                    size="small"
+                    disabled={isViewMode}
+                    error={!!errors.no_of_employees}
+                    helperText={errors.no_of_employees?.message}
+                  />
+                )}
+              />
+            </Grid>
+          </Grid>
+
           {/* Location */}
           <Typography
             variant="subtitle2"
@@ -663,6 +772,83 @@ export default function EditListingSlide({
             >
               {tags.length}/8 tags used
             </Typography>
+          )}
+
+          {/* External Links */}
+          <Divider sx={{ my: 2 }} />
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 1.5,
+            }}
+          >
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 600, color: "#111827" }}
+            >
+              External Links
+            </Typography>
+            {!isViewMode && (
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={handleAddLink}
+                disabled={links.length >= 10}
+                sx={{ textTransform: "none" }}
+              >
+                Add Link
+              </Button>
+            )}
+          </Box>
+
+          {links.length === 0 ? (
+            <Typography variant="caption" sx={{ color: "#9ca3af", mb: 2, display: "block" }}>
+              No external links added.
+            </Typography>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25, mb: 2 }}>
+              {links.map((item, index) => (
+                <Grid container spacing={1} key={`listing-link-${index}`}>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      value={item.text || ""}
+                      onChange={(event) =>
+                        handleUpdateLink(index, "text", event.target.value)
+                      }
+                      label="Link Text"
+                      fullWidth
+                      size="small"
+                      disabled={isViewMode}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={7}>
+                    <TextField
+                      value={item.link || ""}
+                      onChange={(event) =>
+                        handleUpdateLink(index, "link", event.target.value)
+                      }
+                      label="URL"
+                      fullWidth
+                      size="small"
+                      disabled={isViewMode}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={1}>
+                    {!isViewMode && (
+                      <IconButton
+                        onClick={() => handleRemoveLink(index)}
+                        size="small"
+                        sx={{ mt: { sm: 0.5 } }}
+                      >
+                        <FiTrash2 size={16} />
+                      </IconButton>
+                    )}
+                  </Grid>
+                </Grid>
+              ))}
+            </Box>
           )}
         </Box>
       </Box>
