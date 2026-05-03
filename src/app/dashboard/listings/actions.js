@@ -31,6 +31,7 @@ export async function createListing(formData) {
         min_cashflow: formData.min_cashflow || null,
         max_cashflow: formData.max_cashflow || null,
         no_of_employees: formData.no_of_employees || null,
+        reference_no: formData.reference_no || null,
         country: formData.country || null,
         state: formData.state || null,
         is_sba_approved: formData.is_sba_approved || false,
@@ -95,6 +96,7 @@ export async function getListings() {
         min_cashflow,
         max_cashflow,
         no_of_employees,
+        reference_no,
         country,
         state,
         is_sba_approved,
@@ -184,6 +186,7 @@ export async function updateListing(listingId, listingData) {
         min_cashflow: listingData.min_cashflow,
         max_cashflow: listingData.max_cashflow,
         no_of_employees: listingData.no_of_employees,
+        reference_no: listingData.reference_no,
         country: listingData.country,
         state: listingData.state,
         is_sba_approved: listingData.is_sba_approved,
@@ -494,6 +497,7 @@ export async function getAllListingsWithUsers() {
         min_cashflow,
         max_cashflow,
         no_of_employees,
+        reference_no,
         country,
         state,
         is_sba_approved,
@@ -632,41 +636,6 @@ export async function deleteListing(listingId) {
   } catch (error) {
     console.error("Error deleting listing:", error);
     return { error: error.message || "Failed to delete listing" };
-  }
-}
-
-export async function getAllUniqueTags() {
-  try {
-    const supabase = await createServerSupabaseClient();
-
-    // Fetch all listings with tags
-    const { data: listings, error } = await supabase
-      .from("listings")
-      .select("tags");
-
-    if (error) {
-      console.error("Error fetching tags:", error);
-      return { error: error.message || "Failed to fetch tags" };
-    }
-
-    // Collect all unique tags
-    const uniqueTags = new Set();
-    if (listings && listings.length > 0) {
-      listings.forEach((listing) => {
-        if (Array.isArray(listing.tags)) {
-          listing.tags.forEach((tag) => {
-            if (tag) {
-              uniqueTags.add(tag);
-            }
-          });
-        }
-      });
-    }
-
-    return { success: true, data: Array.from(uniqueTags).sort() };
-  } catch (error) {
-    console.error("Error in getAllUniqueTags:", error);
-    return { error: error.message || "Failed to fetch tags" };
   }
 }
 

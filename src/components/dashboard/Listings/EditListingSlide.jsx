@@ -31,10 +31,10 @@ import {
   BUSINESS_CATEGORIES,
   STATUS_OPTIONS,
 } from "./listingSchema";
-import {
-  createListing,
-  getAllUniqueTags,
-} from "@/app/dashboard/listings/actions";
+import { createListing } from "@/app/dashboard/listings/actions";
+import BUSINESS_TAG_OPTIONS from "@/data/businessTags";
+import CopyableId from "@/components/business-for-sale/CopyableId";
+import { formatListingId } from "@/utils/listingIdFormater";
 
 export default function EditListingSlide({
   open,
@@ -51,28 +51,7 @@ export default function EditListingSlide({
   const [errorMessage, setErrorMessage] = useState("");
   const [isApproved, setIsApproved] = useState(listing?.is_approved || false);
   const [tags, setTags] = useState(listing?.tags || []);
-  const [tagInput, setTagInput] = useState("");
-  const [tagSuggestions, setTagSuggestions] = useState([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(true);
   const [links, setLinks] = useState(listing?.links || []);
-
-  // Fetch unique tags from all listings
-  useEffect(() => {
-    const fetchTags = async () => {
-      try {
-        setLoadingSuggestions(true);
-        const result = await getAllUniqueTags();
-        if (result.success && result.data) {
-          setTagSuggestions(result.data);
-        }
-      } catch (error) {
-        console.error("Error fetching tags:", error);
-      } finally {
-        setLoadingSuggestions(false);
-      }
-    };
-    fetchTags();
-  }, []);
 
   const handleRemoveTag = (tagToRemove) => {
     setTags(tags.filter((tag) => tag !== tagToRemove));
@@ -94,7 +73,17 @@ export default function EditListingSlide({
     setLinks((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
   };
 
-  const availableTags = tagSuggestions.filter((tag) => !tags.includes(tag));
+  const selectedTagOptions = useMemo(
+    () => BUSINESS_TAG_OPTIONS.filter((option) => tags.includes(option.value)),
+    [tags],
+  );
+
+  const getTagTitle = (tagValue) => {
+    return (
+      BUSINESS_TAG_OPTIONS.find((option) => option.value === tagValue)?.title ||
+      tagValue
+    );
+  };
 
   const isViewMode = mode === "view";
   const isNewMode = mode === "new";
@@ -119,6 +108,7 @@ export default function EditListingSlide({
       min_cashflow: listing?.min_cashflow || null,
       max_cashflow: listing?.max_cashflow || null,
       no_of_employees: listing?.no_of_employees || null,
+      reference_no: listing?.reference_no || "",
       country: listing?.country || "",
       state: listing?.state || "",
       is_sba_approved: listing?.is_sba_approved || false,
@@ -212,7 +202,6 @@ export default function EditListingSlide({
   const handleClose = () => {
     reset();
     setTags([]);
-    setTagInput("");
     setLinks(listing?.links || []);
     setSuccessMessage("");
     setErrorMessage("");
@@ -240,6 +229,9 @@ export default function EditListingSlide({
       setApprovingStatus(false);
     }
   };
+
+  const listingIdInfo =
+    !isNewMode && listing?.id ? formatListingId(listing.id) : null;
 
   return (
     <Drawer
@@ -279,6 +271,14 @@ export default function EditListingSlide({
                 ? "View details"
                 : "Update your listing information"}
           </Typography>
+          {listingIdInfo && (
+            <Box sx={{ mt: 0.5 }}>
+              <CopyableId
+                formatted={listingIdInfo.formatted}
+                original={listingIdInfo.original}
+              />
+            </Box>
+          )}
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           {!isNewMode && (
@@ -645,6 +645,23 @@ export default function EditListingSlide({
                 )}
               />
             </Grid>
+            <Grid item xs={6}>
+              <Controller
+                name="reference_no"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Reference No"
+                    fullWidth
+                    size="small"
+                    disabled={isViewMode}
+                    error={!!errors.reference_no}
+                    helperText={errors.reference_no?.message}
+                  />
+                )}
+              />
+            </Grid>
           </Grid>
 
           {/* Location */}
@@ -762,27 +779,45 @@ export default function EditListingSlide({
             Business Tags (Max 8)
           </Typography>
 
-          {!isViewMode && tags.length < 8 && (
+          {!isViewMode && (
             <Autocomplete
-              options={availableTags}
-              freeSolo
+              multiple
+              options={BUSINESS_TAG_OPTIONS}
               fullWidth
               size="small"
-              value={null}
-              inputValue={tagInput}
-              onInputChange={(event, value, reason) => {
-                setTagInput(value);
+              disableCloseOnSelect
+              ListboxProps={{
+                sx: {
+                  py: 0.5,
+                  "& .MuiAutocomplete-option": {
+                    minHeight: 44,
+                    py: 1,
+                    px: 1.5,
+                    lineHeight: 1.4,
+                    alignItems: "center",
+                  },
+                },
               }}
-              onChange={(event, value, reason) => {
-                if (value && !tags.includes(value) && tags.length < 8) {
-                  setTags([...tags, value]);
-                  setTagInput("");
-                }
+              slotProps={{
+                paper: {
+                  sx: {
+                    mt: 0.5,
+                    borderRadius: 2,
+                  },
+                },
+              }}
+              value={selectedTagOptions}
+              getOptionLabel={(option) => option.title}
+              isOptionEqualToValue={(option, value) =>
+                option.value === value.value
+              }
+              onChange={(event, value) => {
+                setTags(value.map((item) => item.value).slice(0, 8));
               }}
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  placeholder="Search or type to add tags..."
+                  placeholder="Select business tags..."
                   sx={{ mb: 2 }}
                 />
               )}
@@ -795,7 +830,7 @@ export default function EditListingSlide({
               {tags.map((tag) => (
                 <Chip
                   key={tag}
-                  label={tag}
+                  label={getTagTitle(tag)}
                   onDelete={() => handleRemoveTag(tag)}
                   disabled={isViewMode}
                   sx={{

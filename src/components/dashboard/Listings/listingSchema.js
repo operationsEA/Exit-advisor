@@ -80,6 +80,11 @@ export const listingEditSchema = yup.object().shape({
     .min(0, "Number of employees cannot be negative")
     .nullable(),
 
+  reference_no: yup
+    .string()
+    .max(100, "Reference number must not exceed 100 characters")
+    .nullable(),
+
   country: yup.string().nullable(),
 
   state: yup.string().nullable(),

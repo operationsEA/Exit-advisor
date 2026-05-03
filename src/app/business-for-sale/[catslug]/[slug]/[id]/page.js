@@ -21,6 +21,8 @@ import { getListingDetail } from "@/app/business-for-sale/actions";
 import DescriptionToggle from "@/components/business-for-sale/DescriptionToggle";
 import FavoriteToggleButton from "@/components/business-for-sale/FavoriteToggleButton";
 import ContactSellerButtons from "@/components/ChatSystem/ContactSellerButtons";
+import CopyableId from "@/components/business-for-sale/CopyableId";
+import { formatListingId } from "@/utils/listingIdFormater";
 
 const STATUS_COLORS = {
   available: { bg: "#ecfdf5", text: "#065f46", label: "Available" },
@@ -62,7 +64,6 @@ export default async function ListingDetailPage(props) {
   }
 
   const listing = listingResult.data;
-  console.log({ listing });
 
   const priceDisplay =
     listing.min_price && listing.max_price
@@ -92,6 +93,8 @@ export default async function ListingDetailPage(props) {
         (item) => item && typeof item === "object" && item.link && item.text,
       )
     : [];
+
+  const listingIdInfo = formatListingId(listing.id);
 
   return (
     <div suppressHydrationWarning>
@@ -479,6 +482,10 @@ export default async function ListingDetailPage(props) {
                 Listing Details
               </Typography>
               <Box sx={{ space: "y-2" }}>
+                <CopyableId
+                  formatted={listingIdInfo.formatted}
+                  original={listingIdInfo.original}
+                />
                 <Box sx={{ pb: 1.5 }}>
                   <Typography
                     variant="caption"
