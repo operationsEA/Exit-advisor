@@ -127,7 +127,7 @@ export async function getPublicListings(filters = {}) {
       }
     }
 
-    // Employee range filter
+    // Employee range filter — null rows are excluded intentionally
     if (
       filters.minNoOfEmployees !== undefined ||
       filters.maxNoOfEmployees !== undefined
@@ -135,7 +135,6 @@ export async function getPublicListings(filters = {}) {
       if (filters.minNoOfEmployees !== undefined) {
         query = query.gte("no_of_employees", filters.minNoOfEmployees);
       }
-
       if (filters.maxNoOfEmployees !== undefined) {
         query = query.lte("no_of_employees", filters.maxNoOfEmployees);
       }

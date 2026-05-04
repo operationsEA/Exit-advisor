@@ -24,16 +24,16 @@ CREATE TABLE public.bulk_upload_logs (
   CONSTRAINT Bulk_Upload_Logs_broker_id_fkey FOREIGN KEY (broker_id) REFERENCES public.profiles(id)
 );
 CREATE TABLE public.chat (
-  id bigint NOT NULL DEFAULT nextval('"Chat_id_seq"'::regclass),
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
   listing_id uuid NOT NULL,
   buyer_id uuid NOT NULL,
   seller_id uuid NOT NULL,
   last_message_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT chat_pkey PRIMARY KEY (id),
-  CONSTRAINT Chat_listing_id_fkey FOREIGN KEY (listing_id) REFERENCES public.listings(id),
-  CONSTRAINT Chat_buyer_id_fkey FOREIGN KEY (buyer_id) REFERENCES public.profiles(id),
-  CONSTRAINT Chat_seller_id_fkey FOREIGN KEY (seller_id) REFERENCES public.profiles(id)
+  CONSTRAINT chat_listing_id_fkey FOREIGN KEY (listing_id) REFERENCES public.listings(id),
+  CONSTRAINT chat_buyer_id_fkey FOREIGN KEY (buyer_id) REFERENCES public.profiles(id),
+  CONSTRAINT chat_seller_id_fkey FOREIGN KEY (seller_id) REFERENCES public.profiles(id)
 );
 CREATE TABLE public.favorites_listings (
   id bigint NOT NULL DEFAULT nextval('"Favorites_Listings_id_seq"'::regclass),
@@ -83,12 +83,15 @@ CREATE TABLE public.listings (
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   image_url text,
   tags jsonb,
+  links jsonb NOT NULL DEFAULT '[]'::jsonb,
+  no_of_employees integer,
+  reference_no text,
   CONSTRAINT listings_pkey PRIMARY KEY (id),
   CONSTRAINT Listings_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
 );
 CREATE TABLE public.message_attachments (
-  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
-  message_id bigint NOT NULL,
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  message_id uuid NOT NULL,
   file_url text NOT NULL,
   file_type text,
   file_name text,
@@ -99,17 +102,17 @@ CREATE TABLE public.message_attachments (
   CONSTRAINT message_attachments_message_id_fkey FOREIGN KEY (message_id) REFERENCES public.messages(id)
 );
 CREATE TABLE public.messages (
-  id bigint NOT NULL DEFAULT nextval('"Messages_id_seq"'::regclass),
-  chat_id bigint NOT NULL,
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  chat_id uuid NOT NULL,
   sender_id uuid NOT NULL,
   message text,
   is_admin boolean DEFAULT false,
-  is_seen boolean DEFAULT false,
+  is_seen boolean NOT NULL DEFAULT false,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   message_type text DEFAULT 'text'::text,
   CONSTRAINT messages_pkey PRIMARY KEY (id),
-  CONSTRAINT Messages_chat_id_fkey FOREIGN KEY (chat_id) REFERENCES public.chat(id),
-  CONSTRAINT Messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.profiles(id)
+  CONSTRAINT messages_chat_id_fkey FOREIGN KEY (chat_id) REFERENCES public.chat(id),
+  CONSTRAINT messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.profiles(id)
 );
 CREATE TABLE public.profiles (
   id uuid NOT NULL,

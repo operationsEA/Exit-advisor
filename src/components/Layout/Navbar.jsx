@@ -25,12 +25,12 @@ const navConfig = {
   publicLinks: [
     {
       label: "Browse",
-      href: "/browse",
+      href: "/business-for-sale",
       requiresAuth: false,
       hideIfAuth: false,
     },
     { label: "About", href: "/about", requiresAuth: false, hideIfAuth: true },
-    { label: "Sell", href: "/sell", requiresAuth: true, hideIfAuth: false },
+    // { label: "Sell", href: "/sell", requiresAuth: true, hideIfAuth: false },
     {
       label: "Dashboard",
       href: "/dashboard",

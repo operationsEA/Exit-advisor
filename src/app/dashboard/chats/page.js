@@ -34,6 +34,25 @@ function sortChats(chats) {
   });
 }
 
+function dedupeMessages(messages = []) {
+  const uniqueById = new Map();
+
+  for (const message of messages) {
+    if (!message?.id) continue;
+
+    // Keep the richer/latest shape when the same message arrives from
+    // optimistic update + realtime/list refresh around the same time.
+    uniqueById.set(message.id, {
+      ...uniqueById.get(message.id),
+      ...message,
+    });
+  }
+
+  return Array.from(uniqueById.values()).sort(
+    (left, right) => new Date(left.created_at) - new Date(right.created_at),
+  );
+}
+
 export default function AdminChatsPage({
   initialChatId = "",
   initialPresetMessage = "",
@@ -94,7 +113,7 @@ export default function AdminChatsPage({
       if (!chat?.id) return;
 
       if (chat.all_messages?.length) {
-        setMessages(chat.all_messages);
+        setMessages(dedupeMessages(chat.all_messages));
       }
 
       if (!hasLoadedMessagesOnce) {
@@ -103,7 +122,7 @@ export default function AdminChatsPage({
       const result = await readMessages(chat.id);
 
       if (result?.success) {
-        setMessages(result.data || []);
+        setMessages(dedupeMessages(result.data || []));
         setPageError("");
 
         if (!isAdmin && chat.unread_count > 0) {
@@ -167,7 +186,7 @@ export default function AdminChatsPage({
       return;
     }
 
-    setMessages((prev) => [...prev, result.data]);
+    setMessages((prev) => dedupeMessages([...prev, result.data]));
     setDraft("");
     setPendingAttachments([]);
     setPageError("");
