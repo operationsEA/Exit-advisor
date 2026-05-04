@@ -635,6 +635,312 @@ export async function markAsSeen(chatId) {
   return { success: true, count };
 }
 
+export async function registerUserPushToken({ token, deviceName } = {}) {
+  const supabase = getSupabase();
+  const auth = await getAuthenticatedUser();
+
+  if (!auth.success) {
+    return { error: auth.error, success: false };
+  }
+
+  const normalizedToken = token?.toString().trim();
+
+  if (!normalizedToken) {
+    return { error: "token is required", success: false };
+  }
+
+  const normalizedDeviceName =
+    deviceName?.toString().trim().slice(0, 200) || null;
+
+  const { data: existingToken, error: existingError } = await supabase
+    .from("user_push_tokens")
+    .select("token, user_id")
+    .eq("token", normalizedToken)
+    .maybeSingle();
+
+  if (existingError) {
+    return {
+      error: existingError.message || "Failed to verify existing push token",
+      success: false,
+    };
+  }
+
+  if (existingToken && existingToken.user_id !== auth.user.id) {
+    return {
+      error: "This token is already registered to another user",
+      success: false,
+    };
+  }
+
+  const timestamp = new Date().toISOString();
+  const payload = {
+    token: normalizedToken,
+    user_id: auth.user.id,
+    device_name: normalizedDeviceName,
+    is_active: true,
+    updated_at: timestamp,
+  };
+
+  const { data, error } = await supabase
+    .from("user_push_tokens")
+    .upsert(payload, {
+      onConflict: "token",
+      ignoreDuplicates: false,
+    })
+    .select("token, user_id, device_name, is_active, created_at, updated_at")
+    .single();
+
+  if (error) {
+    return {
+      error: error.message || "Failed to register push token",
+      success: false,
+    };
+  }
+
+  return { success: true, data };
+}
+
+export async function updateUserPushTokenActivity({ token, isActive } = {}) {
+  const supabase = getSupabase();
+  const auth = await getAuthenticatedUser();
+
+  if (!auth.success) {
+    return { error: auth.error, success: false };
+  }
+
+  const normalizedToken = token?.toString().trim();
+
+  if (!normalizedToken) {
+    return { error: "token is required", success: false };
+  }
+
+  if (typeof isActive !== "boolean") {
+    return { error: "isActive must be a boolean", success: false };
+  }
+
+  const { data, error } = await supabase
+    .from("user_push_tokens")
+    .update({
+      is_active: isActive,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("token", normalizedToken)
+    .eq("user_id", auth.user.id)
+    .select("token, user_id, device_name, is_active, created_at, updated_at")
+    .maybeSingle();
+
+  if (error) {
+    return {
+      error: error.message || "Failed to update push token activity",
+      success: false,
+    };
+  }
+
+  if (!data) {
+    return { error: "Push token not found", success: false };
+  }
+
+  return { success: true, data };
+}
+
+export async function getUserPushTokens({ onlyActive = false } = {}) {
+  const supabase = getSupabase();
+  const auth = await getAuthenticatedUser();
+
+  if (!auth.success) {
+    return { error: auth.error, success: false };
+  }
+
+  let query = supabase
+    .from("user_push_tokens")
+    .select("token, user_id, device_name, is_active, created_at, updated_at")
+    .eq("user_id", auth.user.id)
+    .order("updated_at", { ascending: false });
+
+  if (onlyActive) {
+    query = query.eq("is_active", true);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    return {
+      error: error.message || "Failed to fetch user push tokens",
+      success: false,
+    };
+  }
+
+  return { success: true, data: data || [] };
+}
+
+async function getUserChatActivityRecord(supabase, userId) {
+  const { data, error } = await supabase
+    .from("active_chats")
+    .select("id, chat_id, user_id, is_active, updated_at")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return {
+      error: error.message || "Failed to fetch user chat activity",
+      success: false,
+    };
+  }
+
+  return { success: true, data: data || null };
+}
+
+export async function createUserChatActivity({ chatId, isActive = true } = {}) {
+  const supabase = getSupabase();
+  const auth = await getAuthenticatedUser();
+
+  if (!auth.success) {
+    return { error: auth.error, success: false };
+  }
+
+  if (!chatId) {
+    return { error: "chatId is required", success: false };
+  }
+
+  if (typeof isActive !== "boolean") {
+    return { error: "isActive must be a boolean", success: false };
+  }
+
+  const timestamp = new Date().toISOString();
+  const existingRecordResult = await getUserChatActivityRecord(
+    supabase,
+    auth.user.id,
+  );
+
+  if (!existingRecordResult.success) {
+    return existingRecordResult;
+  }
+
+  if (existingRecordResult.data) {
+    const { data, error } = await supabase
+      .from("active_chats")
+      .update({
+        chat_id: chatId,
+        is_active: isActive,
+        updated_at: timestamp,
+      })
+      .eq("id", existingRecordResult.data.id)
+      .eq("user_id", auth.user.id)
+      .select("id, chat_id, user_id, is_active, updated_at")
+      .single();
+
+    if (error) {
+      return {
+        error: error.message || "Failed to create user chat activity",
+        success: false,
+      };
+    }
+
+    return { success: true, data };
+  }
+
+  const { data, error } = await supabase
+    .from("active_chats")
+    .insert({
+      chat_id: chatId,
+      user_id: auth.user.id,
+      is_active: isActive,
+      updated_at: timestamp,
+    })
+    .select("id, chat_id, user_id, is_active, updated_at")
+    .single();
+
+  if (error) {
+    return {
+      error: error.message || "Failed to create user chat activity",
+      success: false,
+    };
+  }
+
+  return { success: true, data };
+}
+
+export async function updateUserChatActivity({ chatId, isActive } = {}) {
+  const supabase = getSupabase();
+  const auth = await getAuthenticatedUser();
+
+  if (!auth.success) {
+    return { error: auth.error, success: false };
+  }
+
+  if (!chatId) {
+    return { error: "chatId is required", success: false };
+  }
+
+  if (typeof isActive !== "boolean") {
+    return { error: "isActive must be a boolean", success: false };
+  }
+
+  const timestamp = new Date().toISOString();
+  const existingRecordResult = await getUserChatActivityRecord(
+    supabase,
+    auth.user.id,
+  );
+
+  if (!existingRecordResult.success) {
+    return existingRecordResult;
+  }
+
+  if (!existingRecordResult.data) {
+    return createUserChatActivity({ chatId, isActive });
+  }
+
+  const { data, error } = await supabase
+    .from("active_chats")
+    .update({
+      chat_id: chatId,
+      is_active: isActive,
+      updated_at: timestamp,
+    })
+    .eq("id", existingRecordResult.data.id)
+    .eq("user_id", auth.user.id)
+    .select("id, chat_id, user_id, is_active, updated_at")
+    .single();
+
+  if (error) {
+    return {
+      error: error.message || "Failed to update chat activity",
+      success: false,
+    };
+  }
+
+  return { success: true, data };
+}
+
+export async function getUserActiveChat() {
+  const supabase = getSupabase();
+  const auth = await getAuthenticatedUser();
+
+  if (!auth.success) {
+    return { error: auth.error, success: false };
+  }
+
+  const { data, error } = await supabase
+    .from("active_chats")
+    .select("id, chat_id, user_id, is_active, updated_at")
+    .eq("user_id", auth.user.id)
+    .eq("is_active", true)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return {
+      error: error.message || "Failed to get user active chat",
+      success: false,
+    };
+  }
+
+  return { success: true, data: data || null };
+}
+
 export function subscribeToUserChats(userId, onChange) {
   const supabase = getSupabase();
   const buyerChannel = supabase

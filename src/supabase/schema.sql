@@ -1,6 +1,16 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 
+CREATE TABLE public.active_chats (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  chat_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  is_active boolean NOT NULL DEFAULT false,
+  updated_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT active_chats_pkey PRIMARY KEY (id),
+  CONSTRAINT active_chats_chat_id_fkey FOREIGN KEY (chat_id) REFERENCES public.chat(id),
+  CONSTRAINT active_chats_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
 CREATE TABLE public.blogs (
   id bigint NOT NULL DEFAULT nextval('"Blogs_id_seq"'::regclass),
   user_id uuid NOT NULL,
@@ -121,4 +131,14 @@ CREATE TABLE public.profiles (
   avatar_url text,
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
   CONSTRAINT Profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.user_push_tokens (
+  token text NOT NULL,
+  user_id uuid NOT NULL,
+  device_name text,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT user_push_tokens_pkey PRIMARY KEY (token),
+  CONSTRAINT user_push_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
