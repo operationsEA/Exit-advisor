@@ -28,6 +28,7 @@ import {
   subscribeToUserChats,
 } from "@/components/ChatSystem/chatClient";
 import useChatPushNotifications from "@/hooks/useChatPushNotifications";
+import useChatActivityPresence from "@/hooks/useChatActivityPresence";
 
 function sortChats(chats) {
   return [...chats].sort((left, right) => {
@@ -73,6 +74,12 @@ export default function AdminChatsPage({
   } = useChatPushNotifications({
     isAuth,
     userId: user?.id,
+  });
+
+  useChatActivityPresence({
+    isAuth,
+    userId: user?.id,
+    activeChatId: activeChat?.id || null,
   });
 
   const fetchChats = useCallback(async () => {
