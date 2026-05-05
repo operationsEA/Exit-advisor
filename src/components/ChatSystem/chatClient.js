@@ -654,7 +654,7 @@ export async function registerUserPushToken({ token, deviceName } = {}) {
 
   const { data: existingToken, error: existingError } = await supabase
     .from("user_push_tokens")
-    .select("token, user_id")
+    .select("token, user_id, device_name")
     .eq("token", normalizedToken)
     .maybeSingle();
 
@@ -670,6 +670,84 @@ export async function registerUserPushToken({ token, deviceName } = {}) {
       error: "This token is already registered to another user",
       success: false,
     };
+  }
+
+  // If this device already has an older token for this user, rotate it to the
+  // current token and remove stale duplicates for this device.
+  if (normalizedDeviceName) {
+    const { data: deviceTokens, error: deviceTokensError } = await supabase
+      .from("user_push_tokens")
+      .select("token")
+      .eq("user_id", auth.user.id)
+      .eq("device_name", normalizedDeviceName)
+      .order("updated_at", { ascending: false });
+
+    if (deviceTokensError) {
+      return {
+        error:
+          deviceTokensError.message ||
+          "Failed to verify existing device push tokens",
+        success: false,
+      };
+    }
+
+    const activeDeviceToken = deviceTokens?.[0]?.token || null;
+    const timestamp = new Date().toISOString();
+
+    if (activeDeviceToken && activeDeviceToken !== normalizedToken) {
+      const { error: rotateError } = await supabase
+        .from("user_push_tokens")
+        .update({
+          token: normalizedToken,
+          device_name: normalizedDeviceName,
+          is_active: true,
+          updated_at: timestamp,
+        })
+        .eq("token", activeDeviceToken)
+        .eq("user_id", auth.user.id);
+
+      if (rotateError) {
+        return {
+          error: rotateError.message || "Failed to rotate device push token",
+          success: false,
+        };
+      }
+
+      const { error: cleanupError } = await supabase
+        .from("user_push_tokens")
+        .delete()
+        .eq("user_id", auth.user.id)
+        .eq("device_name", normalizedDeviceName)
+        .neq("token", normalizedToken);
+
+      if (cleanupError) {
+        return {
+          error: cleanupError.message || "Failed to clean stale device tokens",
+          success: false,
+        };
+      }
+
+      const { data: rotatedToken, error: rotatedTokenError } = await supabase
+        .from("user_push_tokens")
+        .select(
+          "token, user_id, device_name, is_active, created_at, updated_at",
+        )
+        .eq("token", normalizedToken)
+        .eq("user_id", auth.user.id)
+        .maybeSingle();
+
+      if (rotatedTokenError) {
+        return {
+          error:
+            rotatedTokenError.message || "Failed to load rotated push token",
+          success: false,
+        };
+      }
+
+      if (rotatedToken) {
+        return { success: true, data: rotatedToken };
+      }
+    }
   }
 
   const timestamp = new Date().toISOString();
@@ -695,6 +773,22 @@ export async function registerUserPushToken({ token, deviceName } = {}) {
       error: error.message || "Failed to register push token",
       success: false,
     };
+  }
+
+  if (normalizedDeviceName) {
+    const { error: cleanupError } = await supabase
+      .from("user_push_tokens")
+      .delete()
+      .eq("user_id", auth.user.id)
+      .eq("device_name", normalizedDeviceName)
+      .neq("token", normalizedToken);
+
+    if (cleanupError) {
+      return {
+        error: cleanupError.message || "Failed to clean stale device tokens",
+        success: false,
+      };
+    }
   }
 
   return { success: true, data };
@@ -771,6 +865,84 @@ export async function getUserPushTokens({ onlyActive = false } = {}) {
   }
 
   return { success: true, data: data || [] };
+}
+
+export async function getUserPushTokenByDevice({
+  deviceName,
+  onlyActive = false,
+} = {}) {
+  const normalizedDeviceName = deviceName?.toString().trim().slice(0, 200);
+
+  if (!normalizedDeviceName) {
+    return { error: "deviceName is required", success: false };
+  }
+
+  const tokensResult = await getUserPushTokens({ onlyActive });
+
+  if (!tokensResult.success) {
+    return tokensResult;
+  }
+
+  const matched = (tokensResult.data || []).find(
+    (item) => item.device_name === normalizedDeviceName,
+  );
+
+  return { success: true, data: matched || null };
+}
+
+export async function syncUserPushTokenForDevice({ token, deviceName } = {}) {
+  const registerResult = await registerUserPushToken({ token, deviceName });
+
+  if (!registerResult.success) {
+    return registerResult;
+  }
+
+  if (!registerResult.data?.token) {
+    return { success: true, data: registerResult.data || null };
+  }
+
+  const activityResult = await updateUserPushTokenActivity({
+    token: registerResult.data.token,
+    isActive: true,
+  });
+
+  if (!activityResult.success) {
+    return activityResult;
+  }
+
+  return { success: true, data: activityResult.data };
+}
+
+export async function setUserPushTokenActivityByDevice({
+  deviceName,
+  isActive,
+} = {}) {
+  const normalizedDeviceName = deviceName?.toString().trim().slice(0, 200);
+
+  if (!normalizedDeviceName) {
+    return { error: "deviceName is required", success: false };
+  }
+
+  if (typeof isActive !== "boolean") {
+    return { error: "isActive must be a boolean", success: false };
+  }
+
+  const tokenResult = await getUserPushTokenByDevice({
+    deviceName: normalizedDeviceName,
+  });
+
+  if (!tokenResult.success) {
+    return tokenResult;
+  }
+
+  if (!tokenResult.data?.token) {
+    return { success: true, data: null };
+  }
+
+  return updateUserPushTokenActivity({
+    token: tokenResult.data.token,
+    isActive,
+  });
 }
 
 async function getUserChatActivityRecord(supabase, userId) {

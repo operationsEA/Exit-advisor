@@ -5,12 +5,20 @@ import {
   clearStoredPushToken,
   initializeWebPush,
   isPushMessagingSupported,
+  readStoredPushToken,
   requestNotificationPermission,
 } from "../../firebase/messaging";
 import { showLocalNotification } from "../../firebase/triggers";
+import {
+  getUserPushTokenByDevice,
+  setUserPushTokenActivityByDevice,
+  syncUserPushTokenForDevice,
+  updateUserPushTokenActivity,
+} from "@/components/ChatSystem/chatClient";
 
 const PUSH_SETTINGS_PREFIX = "chat_push_notifications_enabled";
 const PUSH_PROMPT_PREFIX = "chat_push_notifications_prompted";
+const PUSH_DEVICE_KEY_PREFIX = "chat_push_device_name";
 
 function readBooleanSetting(key, fallback = true) {
   if (typeof window === "undefined") return fallback;
@@ -24,6 +32,30 @@ function writeBooleanSetting(key, value) {
   window.localStorage.setItem(key, String(Boolean(value)));
 }
 
+function getStableDeviceName(userId) {
+  if (typeof window === "undefined") return null;
+
+  const key = userId
+    ? `${PUSH_DEVICE_KEY_PREFIX}:${userId}`
+    : PUSH_DEVICE_KEY_PREFIX;
+  const existing = window.localStorage.getItem(key);
+
+  if (existing) {
+    return existing;
+  }
+
+  const platform = navigator?.platform || "unknown-platform";
+  const language = navigator?.language || "unknown-language";
+  const ua = navigator?.userAgent || "browser";
+  const generated = `web-${platform}-${language}-${ua.slice(0, 80)}`.slice(
+    0,
+    200,
+  );
+
+  window.localStorage.setItem(key, generated);
+  return generated;
+}
+
 export default function useChatPushNotifications({ isAuth, userId }) {
   const [pushEnabled, setPushEnabled] = useState(true);
   const [pushSupported, setPushSupported] = useState(true);
@@ -33,6 +65,7 @@ export default function useChatPushNotifications({ isAuth, userId }) {
   );
 
   const pushUnsubscribeRef = useRef(null);
+  const deviceNameRef = useRef(null);
   const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
 
   const pushSettingsKey = useMemo(
@@ -54,8 +87,24 @@ export default function useChatPushNotifications({ isAuth, userId }) {
   }, []);
 
   const disablePush = useCallback(
-    (statusMessage = "Notifications are turned off") => {
+    async (statusMessage = "Notifications are turned off") => {
       cleanupPushListener();
+
+      const currentToken = readStoredPushToken();
+      if (currentToken) {
+        await updateUserPushTokenActivity({
+          token: currentToken,
+          isActive: false,
+        }).catch(() => null);
+      }
+
+      if (deviceNameRef.current) {
+        await setUserPushTokenActivityByDevice({
+          deviceName: deviceNameRef.current,
+          isActive: false,
+        }).catch(() => null);
+      }
+
       clearStoredPushToken();
       setPushEnabled(false);
       writeBooleanSetting(pushSettingsKey, false);
@@ -73,7 +122,9 @@ export default function useChatPushNotifications({ isAuth, userId }) {
 
         if (!supported) {
           setPushSupported(false);
-          disablePush("This browser does not support web push notifications");
+          await disablePush(
+            "This browser does not support web push notifications",
+          );
           return;
         }
 
@@ -82,7 +133,9 @@ export default function useChatPushNotifications({ isAuth, userId }) {
           : await requestNotificationPermission();
 
         if (permission !== "granted") {
-          disablePush("Notification permission is blocked or not granted");
+          await disablePush(
+            "Notification permission is blocked or not granted",
+          );
           return;
         }
 
@@ -115,10 +168,22 @@ export default function useChatPushNotifications({ isAuth, userId }) {
             return;
           }
 
-          disablePush(
+          await disablePush(
             result.error || "Failed to initialize push notifications",
           );
           return;
+        }
+
+        if (result.token && deviceNameRef.current) {
+          const syncResult = await syncUserPushTokenForDevice({
+            token: result.token,
+            deviceName: deviceNameRef.current,
+          });
+
+          if (!syncResult.success) {
+            await disablePush(syncResult.error || "Failed to sync push token");
+            return;
+          }
         }
 
         pushUnsubscribeRef.current = result.unsubscribe || null;
@@ -136,6 +201,7 @@ export default function useChatPushNotifications({ isAuth, userId }) {
     if (!isAuth || !userId) return;
 
     let isCancelled = false;
+    deviceNameRef.current = getStableDeviceName(userId);
 
     const setupPushPreference = async () => {
       setPushBusy(true);
@@ -158,7 +224,29 @@ export default function useChatPushNotifications({ isAuth, userId }) {
 
         setPushSupported(true);
 
-        const isEnabled = readBooleanSetting(pushSettingsKey, true);
+        const backendTokenResult = deviceNameRef.current
+          ? await getUserPushTokenByDevice({
+              deviceName: deviceNameRef.current,
+            })
+          : { success: true, data: null };
+
+        if (!backendTokenResult.success) {
+          if (!isCancelled) {
+            setPushEnabled(false);
+            setPushStatusText(
+              backendTokenResult.error ||
+                "Failed to read notification settings from server",
+            );
+          }
+          return;
+        }
+
+        const backendEnabled =
+          backendTokenResult.data == null
+            ? true
+            : Boolean(backendTokenResult.data.is_active);
+
+        const isEnabled = readBooleanSetting(pushSettingsKey, backendEnabled);
         setPushEnabled(isEnabled);
 
         const alreadyPrompted =
@@ -174,7 +262,9 @@ export default function useChatPushNotifications({ isAuth, userId }) {
 
           if (permission !== "granted") {
             if (!isCancelled) {
-              disablePush("Notification permission is blocked or not granted");
+              await disablePush(
+                "Notification permission is blocked or not granted",
+              );
             }
             return;
           }
@@ -183,6 +273,12 @@ export default function useChatPushNotifications({ isAuth, userId }) {
         if (isEnabled) {
           await enablePush({ skipPermissionPrompt: true });
         } else if (!isCancelled) {
+          if (deviceNameRef.current) {
+            await setUserPushTokenActivityByDevice({
+              deviceName: deviceNameRef.current,
+              isActive: false,
+            });
+          }
           setPushStatusText("Notifications are turned off");
         }
       } finally {
@@ -217,7 +313,7 @@ export default function useChatPushNotifications({ isAuth, userId }) {
         return;
       }
 
-      disablePush("Notifications are turned off");
+      await disablePush("Notifications are turned off");
     },
     [disablePush, enablePush],
   );

@@ -92,10 +92,6 @@ export default function AdminChatsPage({
         return ordered.find((item) => item.id === prev.id) || null;
       });
       setMessages((prev) => prev);
-      try {
-      } catch (e) {
-        console.log("Error in fetchChats useEffect", e);
-      }
     } else if (result?.error) {
       setPageError(result.error);
     }
