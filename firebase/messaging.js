@@ -172,3 +172,62 @@ export async function initializeWebPush({
     registration,
   };
 }
+
+export function createFcmPushPayload({
+  token,
+  title,
+  body,
+  data,
+  image,
+  icon,
+} = {}) {
+  return {
+    token: token?.toString().trim() || "",
+    notification: {
+      title: title || "New Notification",
+      body: body || "",
+      image: image || undefined,
+    },
+    webpush: {
+      notification: {
+        icon: icon || undefined,
+      },
+      data: data || {},
+    },
+    data: data || {},
+  };
+}
+
+export async function sendPushNotification({
+  token,
+  payload,
+  endpoint = "/api/notifications/push",
+} = {}) {
+  const resolvedToken = token?.toString().trim();
+
+  if (!resolvedToken) {
+    return { success: false, error: "token is required" };
+  }
+
+  const body = payload || createFcmPushPayload({ token: resolvedToken });
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ token: resolvedToken, payload: body }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    return {
+      success: false,
+      error: text || "Failed to send push notification",
+      status: response.status,
+    };
+  }
+
+  const responseData = await response.json().catch(() => ({}));
+  return { success: true, data: responseData };
+}

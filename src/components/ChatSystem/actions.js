@@ -1,5 +1,7 @@
 "use server";
 
+import admin from "firebase-admin";
+
 import { createServerSupabaseClient } from "@/supabase/server";
 
 async function getAuthenticatedUser(supabase) {
@@ -523,5 +525,59 @@ export async function markAsSean(chatId) {
       error: error.message || "Failed to mark messages as seen",
       success: false,
     };
+  }
+}
+
+function getFirebaseAdmin() {
+  if (admin.apps.length > 0) {
+    return admin.app();
+  }
+
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
+
+  if (!privateKey || !clientEmail || !projectId) {
+    throw new Error("Firebase Admin env vars are not set");
+  }
+
+  return admin.initializeApp({
+    credential: admin.credential.cert({ projectId, clientEmail, privateKey }),
+  });
+}
+
+export async function sendFcmNotification({ token, payload } = {}) {
+  const resolvedToken = token?.toString().trim();
+  if (!resolvedToken) {
+    return { success: false, error: "token is required" };
+  }
+
+  try {
+    getFirebaseAdmin();
+
+    const message = {
+      token: resolvedToken,
+      data: payload,
+    };
+
+    const messageId = await admin.messaging().send(message);
+
+    return { success: true, messageId };
+  } catch (error) {
+    console.error("[sendFcmNotification] Error:", error.message);
+
+    if (
+      error.code === "messaging/registration-token-not-registered" ||
+      error.code === "messaging/invalid-registration-token"
+    ) {
+      return {
+        success: false,
+        error: "Token expired or invalid",
+        code: error.code,
+        tokenExpired: true,
+      };
+    }
+
+    return { success: false, error: error.message || "Unknown error" };
   }
 }

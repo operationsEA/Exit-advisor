@@ -1,6 +1,8 @@
 "use client";
 
 import { createBrowserSupabaseClient } from "@/supabase/client";
+import { createFcmPushPayload } from "../../../firebase/messaging";
+import { sendFcmNotification } from "@/components/ChatSystem/actions";
 
 let browserSupabase;
 
@@ -344,6 +346,70 @@ async function uploadChatAttachment({ chatId, senderId, file }) {
   };
 }
 
+async function triggerMessagePushNotification({ message, senderId } = {}) {
+  if (!message?.chat_id || !senderId) {
+    return { success: false, skipped: true, reason: "missing-message-context" };
+  }
+
+  const eligibilityResult = await getChatPushNotificationEligibility({
+    chatId: message.chat_id,
+    senderId,
+  });
+
+  if (!eligibilityResult.success) {
+    return {
+      success: false,
+      skipped: true,
+      reason: eligibilityResult.error || "eligibility-check-failed",
+    };
+  }
+
+  const { canSendNotification, tokens, receiverId } = eligibilityResult.data;
+
+  if (!canSendNotification || !tokens?.length) {
+    return {
+      success: true,
+      skipped: true,
+      reason: eligibilityResult.data.reason || "not-eligible",
+    };
+  }
+
+  const title = message?.sender?.full_name || "New message";
+  const body =
+    message?.message ||
+    (message?.attachments?.length > 0
+      ? `${message.attachments.length} attachment(s)`
+      : "You have a new message");
+
+  const sendResults = await Promise.all(
+    tokens.map((tokenItem) => {
+      const token = tokenItem?.token;
+
+      const payload = {
+        title: title || "New Message",
+        body: body || "You have a new notification",
+        url: message?.chat_id
+          ? `/dashboard/chats/${message.chat_id}`
+          : "/dashboard/chats",
+        icon: "https://static.thenounproject.com/png/4778723-200.png",
+      };
+
+      return sendFcmNotification({ token, payload });
+    }),
+  );
+
+  const successful = sendResults.filter((item) => item?.success).length;
+
+  return {
+    success: true,
+    data: {
+      total: sendResults.length,
+      successful,
+      failed: sendResults.length - successful,
+    },
+  };
+}
+
 export async function sendMessage({
   chatId,
   message = "",
@@ -471,6 +537,13 @@ export async function sendMessage({
       success: false,
     };
   }
+
+  await triggerMessagePushNotification({
+    message: data,
+    senderId: auth.user.id,
+  }).catch((pushError) => {
+    console.warn("Push notification dispatch failed:", pushError);
+  });
 
   return { success: true, data };
 }
@@ -602,6 +675,13 @@ export async function sendAdminMessage({
       success: false,
     };
   }
+
+  await triggerMessagePushNotification({
+    message: data,
+    senderId: auth.user.id,
+  }).catch((pushError) => {
+    console.warn("Push notification dispatch failed:", pushError);
+  });
 
   return { success: true, data };
 }
@@ -943,6 +1023,117 @@ export async function setUserPushTokenActivityByDevice({
     token: tokenResult.data.token,
     isActive,
   });
+}
+
+export async function getChatPushNotificationEligibility({
+  chatId,
+  senderId,
+} = {}) {
+  const supabase = getSupabase();
+  const auth = await getAuthenticatedUser();
+
+  if (!auth.success) {
+    return { error: auth.error, success: false };
+  }
+
+  if (!chatId) {
+    return { error: "chatId is required", success: false };
+  }
+
+  const effectiveSenderId = senderId || auth.user.id;
+
+  if (effectiveSenderId !== auth.user.id) {
+    return {
+      error: "senderId does not match authenticated user",
+      success: false,
+    };
+  }
+
+  const { data: chat, error: chatError } = await supabase
+    .from("chat")
+    .select("id, buyer_id, seller_id")
+    .eq("id", chatId)
+    .maybeSingle();
+
+  if (chatError) {
+    return {
+      error: chatError.message || "Failed to fetch chat",
+      success: false,
+    };
+  }
+
+  if (!chat) {
+    return { error: "Chat not found", success: false };
+  }
+
+  const isBuyerSender = chat.buyer_id === effectiveSenderId;
+  const isSellerSender = chat.seller_id === effectiveSenderId;
+
+  if (!isBuyerSender && !isSellerSender) {
+    return {
+      error: "Sender is not a participant in this chat",
+      success: false,
+    };
+  }
+
+  const receiverId = isBuyerSender ? chat.seller_id : chat.buyer_id;
+
+  const { data: receiverActiveChat, error: activeChatError } = await supabase
+    .from("active_chats")
+    .select("chat_id, is_active, updated_at")
+    .eq("user_id", receiverId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (activeChatError) {
+    return {
+      error: activeChatError.message || "Failed to read receiver active chat",
+      success: false,
+    };
+  }
+
+  const receiverIsActiveOnThisChat = Boolean(
+    receiverActiveChat?.is_active &&
+    String(receiverActiveChat?.chat_id || "") === String(chatId),
+  );
+
+  const { data: receiverTokens, error: tokensError } = await supabase
+    .from("user_push_tokens")
+    .select("token, device_name, updated_at")
+    .eq("user_id", receiverId)
+    .eq("is_active", true)
+    .order("updated_at", { ascending: false });
+
+  if (tokensError) {
+    return {
+      error: tokensError.message || "Failed to fetch receiver push tokens",
+      success: false,
+    };
+  }
+
+  const tokens = receiverTokens || [];
+  const hasActiveTokens = tokens.length > 0;
+  const canSendNotification = hasActiveTokens && !receiverIsActiveOnThisChat;
+
+  return {
+    success: true,
+    data: {
+      chatId,
+      senderId: effectiveSenderId,
+      receiverId,
+      receiverIsActiveOnThisChat,
+      hasActiveTokens,
+      activeTokensCount: tokens.length,
+      tokens,
+      canSendNotification,
+      reason: canSendNotification
+        ? "receiver-off-chat-or-inactive"
+        : hasActiveTokens
+          ? "receiver-currently-active-on-chat"
+          : "receiver-has-no-active-tokens",
+    },
+  };
 }
 
 async function getUserChatActivityRecord(supabase, userId) {

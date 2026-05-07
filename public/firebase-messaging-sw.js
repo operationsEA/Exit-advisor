@@ -24,9 +24,14 @@ messaging.onBackgroundMessage((payload) => {
   const title = notification.title || data.title || "New Notification";
   const options = {
     body: notification.body || data.body || "",
-    icon: notification.icon || data.icon || "/favicon.ico",
+    icon: "/icon.png",
     image: notification.image || data.image,
-    data,
+    badge: "/icon.png",
+    data: {
+      url: data.url || "/",
+      title: data.title,
+      body: data.body,
+    },
   };
 
   self.registration.showNotification(title, options);

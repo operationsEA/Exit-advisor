@@ -1,6 +1,7 @@
 export { app, firebaseConfig, getFirebaseApp } from "./config";
 export {
   clearStoredPushToken,
+  createFcmPushPayload,
   getMessagingInstance,
   getOrCreatePushToken,
   initializeWebPush,
@@ -9,10 +10,5 @@ export {
   readStoredPushToken,
   registerMessagingServiceWorker,
   requestNotificationPermission,
+  sendPushNotification,
 } from "./messaging";
-export {
-  createPushPayload,
-  emitPushTrigger,
-  onPushTrigger,
-  showLocalNotification,
-} from "./triggers";

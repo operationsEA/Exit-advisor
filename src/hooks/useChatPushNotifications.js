@@ -8,7 +8,6 @@ import {
   readStoredPushToken,
   requestNotificationPermission,
 } from "../../firebase/messaging";
-import { showLocalNotification } from "../../firebase/triggers";
 import {
   getUserPushTokenByDevice,
   setUserPushTokenActivityByDevice,
@@ -64,7 +63,6 @@ export default function useChatPushNotifications({ isAuth, userId }) {
     "Checking notification support...",
   );
 
-  const pushUnsubscribeRef = useRef(null);
   const deviceNameRef = useRef(null);
   const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
 
@@ -78,18 +76,8 @@ export default function useChatPushNotifications({ isAuth, userId }) {
     [userId],
   );
 
-  const cleanupPushListener = useCallback(() => {
-    if (typeof pushUnsubscribeRef.current === "function") {
-      pushUnsubscribeRef.current();
-    }
-
-    pushUnsubscribeRef.current = null;
-  }, []);
-
   const disablePush = useCallback(
     async (statusMessage = "Notifications are turned off") => {
-      cleanupPushListener();
-
       const currentToken = readStoredPushToken();
       if (currentToken) {
         await updateUserPushTokenActivity({
@@ -110,7 +98,7 @@ export default function useChatPushNotifications({ isAuth, userId }) {
       writeBooleanSetting(pushSettingsKey, false);
       setPushStatusText(statusMessage);
     },
-    [cleanupPushListener, pushSettingsKey],
+    [pushSettingsKey],
   );
 
   const enablePush = useCallback(
@@ -139,23 +127,8 @@ export default function useChatPushNotifications({ isAuth, userId }) {
           return;
         }
 
-        cleanupPushListener();
-
         const result = await initializeWebPush({
           vapidKey,
-          onMessageReceived: (payload) => {
-            const title = payload?.notification?.title || "New Message";
-            const body =
-              payload?.notification?.body ||
-              payload?.data?.body ||
-              "You have a new update.";
-
-            showLocalNotification({
-              title,
-              body,
-              data: payload?.data || {},
-            });
-          },
         });
 
         if (!result.success) {
@@ -186,7 +159,6 @@ export default function useChatPushNotifications({ isAuth, userId }) {
           }
         }
 
-        pushUnsubscribeRef.current = result.unsubscribe || null;
         setPushEnabled(true);
         writeBooleanSetting(pushSettingsKey, true);
         setPushStatusText("Notifications are on");
@@ -194,7 +166,7 @@ export default function useChatPushNotifications({ isAuth, userId }) {
         setPushBusy(false);
       }
     },
-    [cleanupPushListener, disablePush, pushSettingsKey, vapidKey],
+    [disablePush, pushSettingsKey, vapidKey],
   );
 
   useEffect(() => {
@@ -292,10 +264,8 @@ export default function useChatPushNotifications({ isAuth, userId }) {
 
     return () => {
       isCancelled = true;
-      cleanupPushListener();
     };
   }, [
-    cleanupPushListener,
     disablePush,
     enablePush,
     isAuth,

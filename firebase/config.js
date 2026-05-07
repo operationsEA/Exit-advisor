@@ -1,12 +1,12 @@
 import { initializeApp } from "firebase/app";
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyDOIY5pwHpW2eWpq2UAHjBPn6jf2CN47UA",
-  authDomain: "bizforsale-6d902.firebaseapp.com",
-  projectId: "bizforsale-6d902",
-  storageBucket: "bizforsale-6d902.firebasestorage.app",
-  messagingSenderId: "837111595220",
-  appId: "1:837111595220:web:6c2cb75b506ebe26937b41",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 let firebaseApp;
