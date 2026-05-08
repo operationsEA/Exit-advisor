@@ -6,7 +6,9 @@ import {
   Alert,
   Box,
   CircularProgress,
+  FormControlLabel,
   Paper,
+  Switch,
   Typography,
   useMediaQuery,
   useTheme,
@@ -25,6 +27,8 @@ import {
   subscribeToChatMessages,
   subscribeToUserChats,
 } from "@/components/ChatSystem/chatClient";
+import useChatPushNotifications from "@/hooks/useChatPushNotifications";
+import useChatActivityPresence from "@/hooks/useChatActivityPresence";
 
 function sortChats(chats) {
   return [...chats].sort((left, right) => {
@@ -61,6 +65,22 @@ export default function AdminChatsPage({
 
   const role = user?.user_metadata?.role || "buyer";
   const isAdmin = role === "admin";
+  const {
+    pushEnabled,
+    pushSupported,
+    pushBusy,
+    pushStatusText,
+    handleTogglePush,
+  } = useChatPushNotifications({
+    isAuth,
+    userId: user?.id,
+  });
+
+  useChatActivityPresence({
+    isAuth,
+    userId: user?.id,
+    activeChatId: activeChat?.id || null,
+  });
 
   const fetchChats = useCallback(async () => {
     if (!hasLoadedChatsOnce) {
@@ -281,6 +301,47 @@ export default function AdminChatsPage({
     <Box
       sx={{ height: { xs: "calc(100vh - 170px)", md: "calc(100vh - 100px)" } }}
     >
+      <Paper
+        elevation={0}
+        sx={{
+          mb: 1.25,
+          px: 1.4,
+          py: 1,
+          borderRadius: 2,
+          border: "1px solid #dbe5f2",
+          backgroundColor: "#f8fbff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 1,
+          flexWrap: "wrap",
+        }}
+      >
+        <Box>
+          <Typography
+            sx={{ fontWeight: 700, color: "#0f172a", lineHeight: 1.2 }}
+          >
+            Chat Notifications
+          </Typography>
+          <Typography variant="caption" sx={{ color: "#64748b" }}>
+            {pushStatusText}
+          </Typography>
+        </Box>
+
+        <FormControlLabel
+          sx={{ mr: 0 }}
+          control={
+            <Switch
+              color="primary"
+              checked={pushSupported && pushEnabled}
+              onChange={handleTogglePush}
+              disabled={!pushSupported || pushBusy}
+            />
+          }
+          label={pushSupported ? (pushEnabled ? "On" : "Off") : "Unsupported"}
+        />
+      </Paper>
+
       {pageError && (
         <Alert severity="error" sx={{ mb: 1.5 }}>
           {pageError}
