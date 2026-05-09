@@ -18,15 +18,36 @@ import {
   Pagination,
   FormControlLabel,
   Checkbox,
-  Slider,
   Chip,
 } from "@mui/material";
 import { FiSearch } from "react-icons/fi";
 import { getPublicListings } from "@/app/business-for-sale/actions";
 import ListingCard from "@/components/dashboard/Listings/ListingCard";
 import TagsSelect from "@/components/business-for-sale/TagsSelect";
+import RangeFilterPopover from "@/components/business-for-sale/RangeFilterPopover";
 import CATEGORIES from "@/data/categories.json";
 import COUNTRIES_LIST from "@/data/countries.json";
+import {
+  PRICE_LIMITS,
+  REVENUE_LIMITS,
+  CASHFLOW_LIMITS,
+  EMPLOYEE_LIMITS,
+  PRICE_PRESETS,
+  REVENUE_PRESETS,
+  CASHFLOW_PRESETS,
+  EMPLOYEE_PRESETS,
+} from "@/data/listingFilterRanges";
+
+function parseIntegerOrDefault(rawValue, fallback) {
+  const parsed = Number.parseInt(rawValue || "", 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+const formatCurrency = (value) => {
+  if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+  if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+  return `$${value}`;
+};
 
 export default function BusinessForSalePage() {
   const router = useRouter();
@@ -48,12 +69,20 @@ export default function BusinessForSalePage() {
   const [country, setCountry] = useState(searchParams.get("country") || "");
   const [state, setState] = useState(searchParams.get("state") || "");
   const [priceRange, setPriceRange] = useState([
-    parseInt(searchParams.get("minPrice")) || 0,
-    parseInt(searchParams.get("maxPrice")) || 5000000,
+    parseIntegerOrDefault(searchParams.get("minPrice"), PRICE_LIMITS[0]),
+    parseIntegerOrDefault(searchParams.get("maxPrice"), PRICE_LIMITS[1]),
   ]);
   const [revenueRange, setRevenueRange] = useState([
-    parseInt(searchParams.get("minRevenue")) || 0,
-    parseInt(searchParams.get("maxRevenue")) || 10000000,
+    parseIntegerOrDefault(searchParams.get("minRevenue"), REVENUE_LIMITS[0]),
+    parseIntegerOrDefault(searchParams.get("maxRevenue"), REVENUE_LIMITS[1]),
+  ]);
+  const [cashflowRange, setCashflowRange] = useState([
+    parseIntegerOrDefault(searchParams.get("minCashflow"), CASHFLOW_LIMITS[0]),
+    parseIntegerOrDefault(searchParams.get("maxCashflow"), CASHFLOW_LIMITS[1]),
+  ]);
+  const [employeeRange, setEmployeeRange] = useState([
+    parseIntegerOrDefault(searchParams.get("minEmployees"), EMPLOYEE_LIMITS[0]),
+    parseIntegerOrDefault(searchParams.get("maxEmployees"), EMPLOYEE_LIMITS[1]),
   ]);
 
   // Feature flags
@@ -86,6 +115,8 @@ export default function BusinessForSalePage() {
       stateVal,
       priceVal,
       revenueVal,
+      cashflowVal,
+      employeeVal,
       pageVal,
     ) => {
       const params = new URLSearchParams();
@@ -95,10 +126,26 @@ export default function BusinessForSalePage() {
       if (statusVal !== "") params.set("status", statusVal);
       if (countryVal !== "") params.set("country", countryVal);
       if (stateVal) params.set("state", stateVal);
-      if (priceVal[0] > 0) params.set("minPrice", priceVal[0]);
-      if (priceVal[1] < 5000000) params.set("maxPrice", priceVal[1]);
-      if (revenueVal[0] > 0) params.set("minRevenue", revenueVal[0]);
-      if (revenueVal[1] < 10000000) params.set("maxRevenue", revenueVal[1]);
+      if (priceVal[0] > PRICE_LIMITS[0]) params.set("minPrice", priceVal[0]);
+      if (priceVal[1] < PRICE_LIMITS[1]) params.set("maxPrice", priceVal[1]);
+      if (revenueVal[0] > REVENUE_LIMITS[0]) {
+        params.set("minRevenue", revenueVal[0]);
+      }
+      if (revenueVal[1] < REVENUE_LIMITS[1]) {
+        params.set("maxRevenue", revenueVal[1]);
+      }
+      if (cashflowVal[0] > CASHFLOW_LIMITS[0]) {
+        params.set("minCashflow", cashflowVal[0]);
+      }
+      if (cashflowVal[1] < CASHFLOW_LIMITS[1]) {
+        params.set("maxCashflow", cashflowVal[1]);
+      }
+      if (employeeVal[0] > EMPLOYEE_LIMITS[0]) {
+        params.set("minEmployees", employeeVal[0]);
+      }
+      if (employeeVal[1] < EMPLOYEE_LIMITS[1]) {
+        params.set("maxEmployees", employeeVal[1]);
+      }
       if (featured) params.set("featured", "true");
       if (sbaApproved) params.set("sbaApproved", "true");
       if (sellerFinancing) params.set("sellerFinancing", "true");
@@ -138,15 +185,39 @@ export default function BusinessForSalePage() {
       if (state) filters.state = state;
 
       // Only include price range if not at defaults
-      if (priceRange[0] !== 0 || priceRange[1] !== 5000000) {
+      if (
+        priceRange[0] !== PRICE_LIMITS[0] ||
+        priceRange[1] !== PRICE_LIMITS[1]
+      ) {
         filters.minPrice = priceRange[0];
         filters.maxPrice = priceRange[1];
       }
 
       // Only include revenue range if not at defaults
-      if (revenueRange[0] !== 0 || revenueRange[1] !== 10000000) {
+      if (
+        revenueRange[0] !== REVENUE_LIMITS[0] ||
+        revenueRange[1] !== REVENUE_LIMITS[1]
+      ) {
         filters.minRevenue = revenueRange[0];
         filters.maxRevenue = revenueRange[1];
+      }
+
+      // Only include cashflow range if not at defaults
+      if (
+        cashflowRange[0] !== CASHFLOW_LIMITS[0] ||
+        cashflowRange[1] !== CASHFLOW_LIMITS[1]
+      ) {
+        filters.minCashflow = cashflowRange[0];
+        filters.maxCashflow = cashflowRange[1];
+      }
+
+      // Only include employee range if not at defaults
+      if (
+        employeeRange[0] !== EMPLOYEE_LIMITS[0] ||
+        employeeRange[1] !== EMPLOYEE_LIMITS[1]
+      ) {
+        filters.minNoOfEmployees = employeeRange[0];
+        filters.maxNoOfEmployees = employeeRange[1];
       }
 
       // Only include feature flags if true
@@ -175,6 +246,8 @@ export default function BusinessForSalePage() {
     state,
     priceRange,
     revenueRange,
+    cashflowRange,
+    employeeRange,
     featured,
     sbaApproved,
     sellerFinancing,
@@ -194,6 +267,8 @@ export default function BusinessForSalePage() {
       state,
       priceRange,
       revenueRange,
+      cashflowRange,
+      employeeRange,
       page,
     );
     router.push(`/business-for-sale?${queryString}`);
@@ -205,6 +280,8 @@ export default function BusinessForSalePage() {
     state,
     priceRange,
     revenueRange,
+    cashflowRange,
+    employeeRange,
     page,
     tag,
     buildQueryString,
@@ -217,8 +294,10 @@ export default function BusinessForSalePage() {
     setStatus("");
     setCountry("");
     setState("");
-    setPriceRange([0, 5000000]);
-    setRevenueRange([0, 10000000]);
+    setPriceRange(PRICE_LIMITS);
+    setRevenueRange(REVENUE_LIMITS);
+    setCashflowRange(CASHFLOW_LIMITS);
+    setEmployeeRange(EMPLOYEE_LIMITS);
     setFeatured(false);
     setSbaApproved(false);
     setSellerFinancing(false);
@@ -393,54 +472,67 @@ export default function BusinessForSalePage() {
               />
             )}
 
-            {/* Price Range */}
+            {/* Range Filters */}
             <Typography
               variant="subtitle2"
               sx={{ fontWeight: 600, mb: 1, mt: 2 }}
             >
-              Price Range
+              Financial Ranges
             </Typography>
-            <Slider
+            <RangeFilterPopover
+              label="Price"
               value={priceRange}
-              onChange={(e, newValue) => {
-                setPriceRange(newValue);
+              onApply={(nextRange) => {
+                setPriceRange(nextRange);
                 setPage(1);
               }}
-              min={0}
-              max={5000000}
-              step={50000}
-              marks={[
-                { value: 0, label: "$0" },
-                { value: 5000000, label: "$5M" },
-              ]}
-              valueLabelDisplay="auto"
-              valueLabelFormat={(value) => `$${(value / 1000000).toFixed(1)}M`}
-              sx={{ mb: 2 }}
-            />
-
-            {/* Revenue Range */}
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, mb: 1, mt: 2 }}
-            >
-              Revenue Range
-            </Typography>
-            <Slider
-              value={revenueRange}
-              onChange={(e, newValue) => {
-                setRevenueRange(newValue);
-                setPage(1);
-              }}
-              min={0}
-              max={10000000}
+              presets={PRICE_PRESETS}
+              minLimit={PRICE_LIMITS[0]}
+              maxLimit={PRICE_LIMITS[1]}
               step={100000}
-              marks={[
-                { value: 0, label: "$0" },
-                { value: 10000000, label: "$10M" },
-              ]}
-              valueLabelDisplay="auto"
-              valueLabelFormat={(value) => `$${(value / 1000000).toFixed(1)}M`}
-              sx={{ mb: 2 }}
+              formatValue={formatCurrency}
+            />
+            <RangeFilterPopover
+              label="Revenue"
+              value={revenueRange}
+              onApply={(nextRange) => {
+                setRevenueRange(nextRange);
+                setPage(1);
+              }}
+              presets={REVENUE_PRESETS}
+              minLimit={REVENUE_LIMITS[0]}
+              maxLimit={REVENUE_LIMITS[1]}
+              step={500000}
+              formatValue={formatCurrency}
+            />
+            <RangeFilterPopover
+              label="Cashflow"
+              value={cashflowRange}
+              onApply={(nextRange) => {
+                setCashflowRange(nextRange);
+                setPage(1);
+              }}
+              presets={CASHFLOW_PRESETS}
+              minLimit={CASHFLOW_LIMITS[0]}
+              maxLimit={CASHFLOW_LIMITS[1]}
+              step={500000}
+              formatValue={formatCurrency}
+            />
+            <RangeFilterPopover
+              label="No. of Employees"
+              value={employeeRange}
+              onApply={(nextRange) => {
+                setEmployeeRange(nextRange);
+                setPage(1);
+              }}
+              presets={EMPLOYEE_PRESETS}
+              minLimit={EMPLOYEE_LIMITS[0]}
+              maxLimit={EMPLOYEE_LIMITS[1]}
+              step={1}
+              formatValue={(value) => String(value)}
+              formatPresetValue={(value) =>
+                Number(value).toLocaleString("en-US")
+              }
             />
 
             {/* Special Features */}

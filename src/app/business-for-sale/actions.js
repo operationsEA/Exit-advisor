@@ -29,6 +29,7 @@ export async function getPublicListings(filters = {}) {
         max_revenue,
         min_cashflow,
         max_cashflow,
+        no_of_employees,
         country,
         state,
         is_sba_approved,
@@ -123,6 +124,19 @@ export async function getPublicListings(filters = {}) {
         query = query.gte("max_cashflow", filters.minCashflow);
       } else if (filters.maxCashflow) {
         query = query.lte("min_cashflow", filters.maxCashflow);
+      }
+    }
+
+    // Employee range filter — null rows are excluded intentionally
+    if (
+      filters.minNoOfEmployees !== undefined ||
+      filters.maxNoOfEmployees !== undefined
+    ) {
+      if (filters.minNoOfEmployees !== undefined) {
+        query = query.gte("no_of_employees", filters.minNoOfEmployees);
+      }
+      if (filters.maxNoOfEmployees !== undefined) {
+        query = query.lte("no_of_employees", filters.maxNoOfEmployees);
       }
     }
 
@@ -245,6 +259,7 @@ export async function getListingDetail(listingId) {
         max_revenue,
         min_cashflow,
         max_cashflow,
+        no_of_employees,
         country,
         state,
         is_sba_approved,
@@ -260,6 +275,7 @@ export async function getListingDetail(listingId) {
         updated_at,
         user_id,
         tags,
+        links,
         profiles:user_id(id, full_name, email, role, avatar_url)
       `,
       )

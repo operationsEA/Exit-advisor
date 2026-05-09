@@ -28,6 +28,10 @@ export async function createListing(formData) {
         max_price: formData.max_price || null,
         min_revenue: formData.min_revenue || null,
         max_revenue: formData.max_revenue || null,
+        min_cashflow: formData.min_cashflow || null,
+        max_cashflow: formData.max_cashflow || null,
+        no_of_employees: formData.no_of_employees || null,
+        reference_no: formData.reference_no || null,
         country: formData.country || null,
         state: formData.state || null,
         is_sba_approved: formData.is_sba_approved || false,
@@ -36,6 +40,7 @@ export async function createListing(formData) {
         is_remote: formData.is_remote || false,
         is_featured: formData.is_featured || false,
         tags: formData.tags?.length > 0 ? formData.tags : undefined,
+        links: formData.links?.length > 0 ? formData.links : undefined,
       })
       .select()
       .single();
@@ -88,6 +93,10 @@ export async function getListings() {
         max_price,
         min_revenue,
         max_revenue,
+        min_cashflow,
+        max_cashflow,
+        no_of_employees,
+        reference_no,
         country,
         state,
         is_sba_approved,
@@ -99,7 +108,8 @@ export async function getListings() {
         image_url,
         created_at,
         updated_at,
-        tags
+        tags,
+        links
       `,
       )
       .eq("user_id", user.id)
@@ -173,6 +183,10 @@ export async function updateListing(listingId, listingData) {
         max_price: listingData.max_price,
         min_revenue: listingData.min_revenue,
         max_revenue: listingData.max_revenue,
+        min_cashflow: listingData.min_cashflow,
+        max_cashflow: listingData.max_cashflow,
+        no_of_employees: listingData.no_of_employees,
+        reference_no: listingData.reference_no,
         country: listingData.country,
         state: listingData.state,
         is_sba_approved: listingData.is_sba_approved,
@@ -183,6 +197,7 @@ export async function updateListing(listingId, listingData) {
         image_url: listingData.image_url,
         updated_at: new Date().toISOString(),
         tags: listingData.tags?.length > 0 ? listingData.tags : undefined,
+        links: listingData.links?.length > 0 ? listingData.links : undefined,
       })
       .eq("id", listingId)
       .eq("user_id", user.id)
@@ -479,6 +494,10 @@ export async function getAllListingsWithUsers() {
         max_price,
         min_revenue,
         max_revenue,
+        min_cashflow,
+        max_cashflow,
+        no_of_employees,
+        reference_no,
         country,
         state,
         is_sba_approved,
@@ -492,6 +511,7 @@ export async function getAllListingsWithUsers() {
         updated_at,
         user_id,
         tags,
+        links,
         profiles:user_id (
           id,
           email,
@@ -616,41 +636,6 @@ export async function deleteListing(listingId) {
   } catch (error) {
     console.error("Error deleting listing:", error);
     return { error: error.message || "Failed to delete listing" };
-  }
-}
-
-export async function getAllUniqueTags() {
-  try {
-    const supabase = await createServerSupabaseClient();
-
-    // Fetch all listings with tags
-    const { data: listings, error } = await supabase
-      .from("listings")
-      .select("tags");
-
-    if (error) {
-      console.error("Error fetching tags:", error);
-      return { error: error.message || "Failed to fetch tags" };
-    }
-
-    // Collect all unique tags
-    const uniqueTags = new Set();
-    if (listings && listings.length > 0) {
-      listings.forEach((listing) => {
-        if (Array.isArray(listing.tags)) {
-          listing.tags.forEach((tag) => {
-            if (tag) {
-              uniqueTags.add(tag);
-            }
-          });
-        }
-      });
-    }
-
-    return { success: true, data: Array.from(uniqueTags).sort() };
-  } catch (error) {
-    console.error("Error in getAllUniqueTags:", error);
-    return { error: error.message || "Failed to fetch tags" };
   }
 }
 
