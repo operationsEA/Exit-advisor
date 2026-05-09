@@ -8,10 +8,9 @@ export function formatListingId(id) {
   if (!id || typeof id !== "string") return id;
   const parts = id.split("-");
   if (parts.length < 2) return id;
-  const secondLast = parts[parts.length - 2];
   const last = parts[parts.length - 1];
   return {
     original: id,
-    formatted: `AGX-${secondLast}-${last}`,
+    formatted: `BIZ-${last}`,
   };
 }

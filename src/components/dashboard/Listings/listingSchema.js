@@ -1,5 +1,48 @@
 import * as yup from "yup";
 
+const parseNullableNumber = (value, originalValue) => {
+  if (
+    originalValue === "" ||
+    originalValue === null ||
+    typeof originalValue === "undefined"
+  ) {
+    return null;
+  }
+
+  if (typeof originalValue === "string") {
+    const normalizedValue = originalValue.replace(/,/g, "").trim();
+    if (!normalizedValue) {
+      return null;
+    }
+
+    const parsedValue = Number(normalizedValue);
+    return Number.isNaN(parsedValue) ? Number.NaN : parsedValue;
+  }
+
+  return value;
+};
+
+const numberField = (label) =>
+  yup
+    .number()
+    .transform(parseNullableNumber)
+    .typeError(`${label} must be a valid number`)
+    .min(0, `${label} must be positive`)
+    .nullable();
+
+export const CURRENCY_OPTIONS = [
+  { code: "USD", currency_name: "US Dollar", symbol: "$" },
+  { code: "EUR", currency_name: "Euro", symbol: "EUR" },
+  { code: "GBP", currency_name: "British Pound", symbol: "GBP" },
+  { code: "AED", currency_name: "UAE Dirham", symbol: "AED" },
+  { code: "SAR", currency_name: "Saudi Riyal", symbol: "SAR" },
+  { code: "INR", currency_name: "Indian Rupee", symbol: "Rs" },
+  { code: "CAD", currency_name: "Canadian Dollar", symbol: "C$" },
+  { code: "AUD", currency_name: "Australian Dollar", symbol: "A$" },
+  { code: "JPY", currency_name: "Japanese Yen", symbol: "JPY" },
+  { code: "SGD", currency_name: "Singapore Dollar", symbol: "S$" },
+];
+
 export const listingEditSchema = yup.object().shape({
   title: yup
     .string()
@@ -20,59 +63,20 @@ export const listingEditSchema = yup.object().shape({
     .oneOf(["draft", "available", "loi", "sold"], "Invalid status")
     .required("Status is required"),
 
-  min_price: yup.number().min(0, "Minimum price must be positive").nullable(),
+  currency: yup
+    .string()
+    .oneOf(
+      CURRENCY_OPTIONS.map((currency) => currency.code),
+      "Invalid currency",
+    )
+    .default("USD")
+    .required("Currency is required"),
 
-  max_price: yup
-    .number()
-    .min(0, "Maximum price must be positive")
-    .nullable()
-    .test(
-      "max-greater-than-min",
-      "Max price must be greater than min price",
-      function (value) {
-        const { min_price } = this.parent;
-        if (!value || !min_price) return true;
-        return value >= min_price;
-      },
-    ),
+  min_price: numberField("Price"),
 
-  min_revenue: yup
-    .number()
-    .min(0, "Minimum revenue must be positive")
-    .nullable(),
+  min_revenue: numberField("Revenue"),
 
-  max_revenue: yup
-    .number()
-    .min(0, "Maximum revenue must be positive")
-    .nullable()
-    .test(
-      "max-greater-than-min",
-      "Max revenue must be greater than min revenue",
-      function (value) {
-        const { min_revenue } = this.parent;
-        if (!value || !min_revenue) return true;
-        return value >= min_revenue;
-      },
-    ),
-
-  min_cashflow: yup
-    .number()
-    .min(0, "Minimum cashflow must be positive")
-    .nullable(),
-
-  max_cashflow: yup
-    .number()
-    .min(0, "Maximum cashflow must be positive")
-    .nullable()
-    .test(
-      "max-cashflow-greater-than-min",
-      "Max cashflow must be greater than min cashflow",
-      function (value) {
-        const { min_cashflow } = this.parent;
-        if (!value || !min_cashflow) return true;
-        return value >= min_cashflow;
-      },
-    ),
+  min_cashflow: numberField("Cashflow"),
 
   no_of_employees: yup
     .number()
@@ -82,12 +86,15 @@ export const listingEditSchema = yup.object().shape({
 
   reference_no: yup
     .string()
-    .max(100, "Reference number must not exceed 100 characters")
+    .trim()
+    .max(6, "Reference number must not exceed 6 characters")
     .nullable(),
 
-  country: yup.string().nullable(),
+  country: yup.string().required("Country is required"),
 
   state: yup.string().nullable(),
+
+  city: yup.string().nullable(),
 
   is_sba_approved: yup.boolean(),
   has_seller_financing: yup.boolean(),

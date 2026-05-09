@@ -39,6 +39,7 @@ import {
 } from "@/app/dashboard/listings/actions";
 import EditListingSlide from "./EditListingSlide";
 import FavoriteToggleButton from "@/components/business-for-sale/FavoriteToggleButton";
+import { CURRENCY_OPTIONS } from "./listingSchema";
 
 const STATUS_COLORS = {
   available: { bg: "#ecfdf5", text: "#065f46", label: "Available" },
@@ -193,10 +194,16 @@ export default function ListingCard({
   };
 
   const formatAmount = (min, max) => {
+    const currencySymbol = CURRENCY_OPTIONS.find(
+      (option) => option.code === listing.currency,
+    )?.symbol;
+    const formatNumber = (num) => {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    };
     if (min && max)
-      return `$${(min / 1000).toFixed(0)}K - $${(max / 1000).toFixed(0)}K`;
-    if (min) return `$${(min / 1000).toFixed(0)}K`;
-    if (max) return `$${(max / 1000).toFixed(0)}K`;
+      return `${currencySymbol} ${" "} ${formatNumber(min)} - ${currencySymbol} ${" "} ${formatNumber(max)}`;
+    if (min) return `${currencySymbol} ${" "} ${formatNumber(min)}`;
+    if (max) return `${currencySymbol} ${" "} ${formatNumber(max)}`;
     return null;
   };
 

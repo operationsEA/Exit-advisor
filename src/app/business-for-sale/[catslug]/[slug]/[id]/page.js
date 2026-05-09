@@ -19,10 +19,12 @@ import {
 } from "react-icons/fi";
 import { getListingDetail } from "@/app/business-for-sale/actions";
 import DescriptionToggle from "@/components/business-for-sale/DescriptionToggle";
+import ExternalLinkItem from "@/components/business-for-sale/ExternalLinkItem";
 import FavoriteToggleButton from "@/components/business-for-sale/FavoriteToggleButton";
 import ContactSellerButtons from "@/components/ChatSystem/ContactSellerButtons";
 import CopyableId from "@/components/business-for-sale/CopyableId";
 import { formatListingId } from "@/utils/listingIdFormater";
+import { CURRENCY_OPTIONS } from "@/components/dashboard/Listings/listingSchema";
 
 const STATUS_COLORS = {
   available: { bg: "#ecfdf5", text: "#065f46", label: "Available" },
@@ -65,26 +67,28 @@ export default async function ListingDetailPage(props) {
 
   const listing = listingResult.data;
 
+  const formatAmount = (min, max) => {
+    const currencySymbol = CURRENCY_OPTIONS.find(
+      (option) => option.code === listing.currency,
+    )?.symbol;
+    const formatNumber = (num) => {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    };
+    if (min && max)
+      return `${currencySymbol} ${" "} ${formatNumber(min)} - ${currencySymbol} ${" "} ${formatNumber(max)}`;
+    if (min) return `${currencySymbol} ${" "} ${formatNumber(min)}`;
+    if (max) return `${currencySymbol} ${" "} ${formatNumber(max)}`;
+    return null;
+  };
+
   const priceDisplay =
-    listing.min_price && listing.max_price
-      ? `$${(listing.min_price / 1000).toFixed(0)}K - $${(listing.max_price / 1000).toFixed(0)}K`
-      : listing.min_price
-        ? `$${(listing.min_price / 1000).toFixed(0)}K`
-        : "Price TBD";
+    formatAmount(listing.min_price, listing.max_price) || "Price TBD";
 
   const revenueDisplay =
-    listing.min_revenue && listing.max_revenue
-      ? `$${(listing.min_revenue / 1000).toFixed(0)}K - $${(listing.max_revenue / 1000).toFixed(0)}K`
-      : listing.min_revenue
-        ? `$${(listing.min_revenue / 1000).toFixed(0)}K`
-        : null;
+    formatAmount(listing.min_revenue, listing.max_revenue) || null;
 
   const cashflowDisplay =
-    listing.min_cashflow && listing.max_cashflow
-      ? `$${(listing.min_cashflow / 1000).toFixed(0)}K - $${(listing.max_cashflow / 1000).toFixed(0)}K`
-      : listing.min_cashflow
-        ? `$${(listing.min_cashflow / 1000).toFixed(0)}K`
-        : null;
+    formatAmount(listing.min_cashflow, listing.max_cashflow) || null;
 
   const statusInfo = STATUS_COLORS[listing.status] || STATUS_COLORS.available;
   const location = [listing.state, listing.country].filter(Boolean).join(", ");
@@ -380,29 +384,11 @@ export default async function ListingDetailPage(props) {
                 </Typography>
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                   {validLinks.map((item, index) => (
-                    <Link
+                    <ExternalLinkItem
                       key={`${item.link}-${index}`}
-                      href={item.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ textDecoration: "none" }}
-                    >
-                      <Chip
-                        label={item.text}
-                        clickable
-                        sx={{
-                          justifyContent: "flex-start",
-                          width: "100%",
-                          backgroundColor: "#eff6ff",
-                          border: "1px solid #bfdbfe",
-                          color: "#1d4ed8",
-                          fontWeight: 600,
-                          "&:hover": {
-                            backgroundColor: "#dbeafe",
-                          },
-                        }}
-                      />
-                    </Link>
+                      text={item.text}
+                      link={item.link}
+                    />
                   ))}
                 </Box>
               </Paper>

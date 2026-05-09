@@ -77,6 +77,7 @@ export default function AdminChatsPage({
   const [sending, setSending] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState([]);
   const [pageError, setPageError] = useState("");
+  const [showInfoAlert, setShowInfoAlert] = useState(true);
   const [hasLoadedChatsOnce, setHasLoadedChatsOnce] = useState(false);
   const [hasLoadedMessagesOnce, setHasLoadedMessagesOnce] = useState(false);
 
@@ -318,7 +319,7 @@ export default function AdminChatsPage({
 
   return (
     <Box
-      sx={{ height: { xs: "calc(100vh - 170px)", md: "calc(100vh - 100px)" } }}
+      sx={{ height: { xs: "calc(100vh - 80px)", md: "calc(100vh - 180px)" } }}
     >
       <Paper
         elevation={0}
@@ -364,6 +365,17 @@ export default function AdminChatsPage({
       {pageError && (
         <Alert severity="error" sx={{ mb: 1.5 }}>
           {pageError}
+        </Alert>
+      )}
+
+      {showInfoAlert && (
+        <Alert
+          severity="info"
+          onClose={() => setShowInfoAlert(false)}
+          sx={{ mb: 1.5 }}
+        >
+          Information shared through this platform should be independently
+          verified by all parties before proceeding with any transaction
         </Alert>
       )}
 

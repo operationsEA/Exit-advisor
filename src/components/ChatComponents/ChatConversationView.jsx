@@ -29,6 +29,100 @@ function formatMessageTime(value) {
   });
 }
 
+function parseMessageWithLinks(text) {
+  // Regex to detect URLs
+  const urlRegex =
+    /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g;
+
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = urlRegex.exec(text)) !== null) {
+    // Add text before URL
+    if (match.index > lastIndex) {
+      parts.push({
+        type: "text",
+        content: text.substring(lastIndex, match.index),
+      });
+    }
+
+    let url = match[0];
+    // Add protocol if missing
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = "https://" + url;
+    }
+
+    parts.push({
+      type: "link",
+      content: match[0],
+      href: url,
+    });
+
+    lastIndex = urlRegex.lastIndex;
+  }
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push({
+      type: "text",
+      content: text.substring(lastIndex),
+    });
+  }
+
+  return parts.length > 0 ? parts : [{ type: "text", content: text }];
+}
+
+function MessageContent({ text, isMine, palette, viewerPalette }) {
+  const parts = parseMessageWithLinks(text);
+  const textColor = isMine ? "#ffffff" : "#0f172a";
+  const linkColor = isMine ? "#fbbf24" : palette?.accent || "#0884ff";
+
+  return (
+    <>
+      {parts.map((part, index) => {
+        if (part.type === "link") {
+          return (
+            <Typography
+              key={index}
+              component="a"
+              href={part.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                color: linkColor,
+                textDecoration: "underline",
+                cursor: "pointer",
+                wordBreak: "break-word",
+                whiteSpace: "pre-wrap",
+                "&:hover": {
+                  textDecoration: "none",
+                  opacity: 0.8,
+                },
+              }}
+            >
+              {part.content}
+            </Typography>
+          );
+        }
+        return (
+          <Typography
+            key={index}
+            sx={{
+              display: "inline",
+              color: textColor,
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+          >
+            {part.content}
+          </Typography>
+        );
+      })}
+    </>
+  );
+}
+
 function formatRole(value) {
   if (!value) return "Buyer";
   return value.charAt(0).toUpperCase() + value.slice(1);
@@ -338,16 +432,16 @@ export default function AdminChatConversationView({
                       </Typography>
 
                       {!!message.message && (
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            whiteSpace: "pre-wrap",
-                            wordBreak: "break-word",
-                            color: isMine ? "#ffffff" : "#0f172a",
-                          }}
+                        <Box
+                          sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}
                         >
-                          {message.message}
-                        </Typography>
+                          <MessageContent
+                            text={message.message}
+                            isMine={isMine}
+                            palette={palette}
+                            viewerPalette={viewerPalette}
+                          />
+                        </Box>
                       )}
 
                       {message.attachments?.length > 0 && (
@@ -488,12 +582,12 @@ export default function AdminChatConversationView({
               fullWidth
               multiline
               minRows={1}
-              maxRows={4}
+              maxRows={6}
               placeholder="Type your message..."
               value={draft}
               onChange={(event) => onDraftChange(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
+                if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
                   event.preventDefault();
                   onSend();
                 }

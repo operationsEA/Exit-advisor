@@ -21,9 +21,19 @@ import { usePathname } from "next/navigation";
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const pathname = usePathname();
+
+  // Hide footer on dashboard/chat page
+  if (pathname.includes("/dashboard/chat")) {
+    return null;
+  }
+
   const isDashboard = pathname.startsWith("/dashboard");
   const isAuth = pathname.startsWith("/auth");
   const showFooter = !isDashboard && !isAuth;
+
+  if (!showFooter) {
+    return null;
+  }
 
   return (
     <Box

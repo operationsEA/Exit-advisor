@@ -20,21 +20,33 @@ import {
   Chip,
   Grid,
   Autocomplete,
+  InputAdornment,
 } from "@mui/material";
 import { FiX, FiTrash2 } from "react-icons/fi";
 import { MdCheckCircle } from "react-icons/md";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Country, City } from "country-state-city";
+import { Country, State, City } from "country-state-city";
 import {
   listingEditSchema,
   BUSINESS_CATEGORIES,
   STATUS_OPTIONS,
+  CURRENCY_OPTIONS,
 } from "./listingSchema";
 import { createListing } from "@/app/dashboard/listings/actions";
 import BUSINESS_TAG_OPTIONS from "@/data/businessTags";
 import CopyableId from "@/components/business-for-sale/CopyableId";
 import { formatListingId } from "@/utils/listingIdFormater";
+
+const formatNumberDisplay = (value) => {
+  if (value === null || value === undefined || value === "") return "";
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
+const parseNumberInput = (value) => {
+  const normalizedValue = value.replace(/[^\d]/g, "");
+  return normalizedValue ? Number(normalizedValue) : null;
+};
 
 export default function EditListingSlide({
   open,
@@ -101,26 +113,27 @@ export default function EditListingSlide({
       description: listing?.description || "",
       business_category: listing?.business_category || "",
       status: listing?.status || "available",
+      currency: listing?.currency || "USD",
       min_price: listing?.min_price || null,
-      max_price: listing?.max_price || null,
       min_revenue: listing?.min_revenue || null,
-      max_revenue: listing?.max_revenue || null,
       min_cashflow: listing?.min_cashflow || null,
-      max_cashflow: listing?.max_cashflow || null,
       no_of_employees: listing?.no_of_employees || null,
-      reference_no: listing?.reference_no || "",
       country: listing?.country || "",
       state: listing?.state || "",
+      city: listing?.city || "",
       is_sba_approved: listing?.is_sba_approved || false,
       has_seller_financing: listing?.has_seller_financing || false,
       is_distressed: listing?.is_distressed || false,
       is_remote: listing?.is_remote || false,
       is_featured: listing?.is_featured || false,
+      reference_no: listing?.reference_no || "",
     },
   });
 
   const selectedCountryName = useWatch({ control, name: "country" });
-  const selectedCityName = useWatch({ control, name: "state" });
+  const selectedStateName = useWatch({ control, name: "state" });
+  const selectedCityName = useWatch({ control, name: "city" });
+  const selectedCurrencyCode = useWatch({ control, name: "currency" });
 
   const countryOptions = useMemo(() => Country.getAllCountries(), []);
   const selectedCountry = useMemo(
@@ -128,15 +141,55 @@ export default function EditListingSlide({
       countryOptions.find((country) => country.name === selectedCountryName),
     [countryOptions, selectedCountryName],
   );
-  const cityOptions = useMemo(() => {
+  const stateOptions = useMemo(() => {
     if (!selectedCountry?.isoCode) return [];
-    return City.getCitiesOfCountry(selectedCountry.isoCode);
+    return State.getStatesOfCountry(selectedCountry.isoCode);
   }, [selectedCountry?.isoCode]);
+  const selectedState = useMemo(
+    () => stateOptions.find((state) => state.name === selectedStateName),
+    [selectedStateName, stateOptions],
+  );
+  const cityOptions = useMemo(() => {
+    if (!selectedCountry?.isoCode || !selectedState?.isoCode) return [];
+    return City.getCitiesOfState(
+      selectedCountry.isoCode,
+      selectedState.isoCode,
+    );
+  }, [selectedCountry?.isoCode, selectedState?.isoCode]);
+  const selectedCurrency = useMemo(
+    () =>
+      CURRENCY_OPTIONS.find(
+        (currency) => currency.code === selectedCurrencyCode,
+      ) || CURRENCY_OPTIONS[0],
+    [selectedCurrencyCode],
+  );
 
   useEffect(() => {
     if (!selectedCountryName) {
-      if (selectedCityName) {
+      if (selectedStateName) {
         setValue("state", "", { shouldValidate: true });
+      }
+      if (selectedCityName) {
+        setValue("city", "", { shouldValidate: true });
+      }
+      return;
+    }
+
+    if (selectedStateName) {
+      const stateExists = stateOptions.some(
+        (state) => state.name === selectedStateName,
+      );
+
+      if (!stateExists) {
+        setValue("state", "", { shouldValidate: true });
+        setValue("city", "", { shouldValidate: true });
+        return;
+      }
+    }
+
+    if (!selectedStateName) {
+      if (selectedCityName) {
+        setValue("city", "", { shouldValidate: true });
       }
       return;
     }
@@ -147,9 +200,16 @@ export default function EditListingSlide({
       (city) => city.name === selectedCityName,
     );
     if (!cityExists) {
-      setValue("state", "", { shouldValidate: true });
+      setValue("city", "", { shouldValidate: true });
     }
-  }, [cityOptions, selectedCityName, selectedCountryName, setValue]);
+  }, [
+    cityOptions,
+    selectedCityName,
+    selectedCountryName,
+    selectedStateName,
+    setValue,
+    stateOptions,
+  ]);
 
   const onSubmit = async (data) => {
     try {
@@ -433,7 +493,7 @@ export default function EditListingSlide({
 
           {/* Category & Status */}
           <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={4}>
               <Controller
                 name="business_category"
                 control={control}
@@ -456,7 +516,7 @@ export default function EditListingSlide({
                 )}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={4}>
               <Controller
                 name="status"
                 control={control}
@@ -479,6 +539,30 @@ export default function EditListingSlide({
                 )}
               />
             </Grid>
+            <Grid item xs={12} sm={4}>
+              <Controller
+                name="currency"
+                control={control}
+                render={({ field }) => (
+                  <FormControl
+                    fullWidth
+                    size="small"
+                    disabled={isViewMode}
+                    error={!!errors.currency}
+                  >
+                    <InputLabel>Currency</InputLabel>
+                    <Select {...field} label="Currency">
+                      {CURRENCY_OPTIONS.map((currency) => (
+                        <MenuItem key={currency.code} value={currency.code}>
+                          {currency.code} - {currency.currency_name} (
+                          {currency.symbol})
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+            </Grid>
           </Grid>
 
           {/* Price Range */}
@@ -486,41 +570,37 @@ export default function EditListingSlide({
             variant="subtitle2"
             sx={{ fontWeight: 600, mb: 1.5, color: "#111827" }}
           >
-            Price Range
+            Asking Price
           </Typography>
           <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={6}>
+            <Grid item xs={12}>
               <Controller
                 name="min_price"
                 control={control}
                 render={({ field }) => (
                   <TextField
-                    {...field}
-                    label="Min Price"
-                    type="number"
+                    name={field.name}
+                    inputRef={field.ref}
+                    label="Price"
+                    type="text"
                     fullWidth
                     size="small"
                     disabled={isViewMode}
                     error={!!errors.min_price}
                     helperText={errors.min_price?.message}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="max_price"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Max Price"
-                    type="number"
-                    fullWidth
-                    size="small"
-                    disabled={isViewMode}
-                    error={!!errors.max_price}
-                    helperText={errors.max_price?.message}
+                    value={formatNumberDisplay(field.value)}
+                    onBlur={field.onBlur}
+                    onChange={(event) =>
+                      field.onChange(parseNumberInput(event.target.value))
+                    }
+                    inputProps={{ inputMode: "numeric", maxLength: 15 }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          {selectedCurrency.symbol}
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 )}
               />
@@ -532,41 +612,37 @@ export default function EditListingSlide({
             variant="subtitle2"
             sx={{ fontWeight: 600, mb: 1.5, color: "#111827" }}
           >
-            Revenue Range
+            Annual Revenue
           </Typography>
           <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={6}>
+            <Grid item xs={12}>
               <Controller
                 name="min_revenue"
                 control={control}
                 render={({ field }) => (
                   <TextField
-                    {...field}
-                    label="Min Revenue"
-                    type="number"
+                    name={field.name}
+                    inputRef={field.ref}
+                    label="Revenue"
+                    type="text"
                     fullWidth
                     size="small"
                     disabled={isViewMode}
                     error={!!errors.min_revenue}
                     helperText={errors.min_revenue?.message}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="max_revenue"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Max Revenue"
-                    type="number"
-                    fullWidth
-                    size="small"
-                    disabled={isViewMode}
-                    error={!!errors.max_revenue}
-                    helperText={errors.max_revenue?.message}
+                    value={formatNumberDisplay(field.value)}
+                    onBlur={field.onBlur}
+                    onChange={(event) =>
+                      field.onChange(parseNumberInput(event.target.value))
+                    }
+                    inputProps={{ inputMode: "numeric", maxLength: 15 }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          {selectedCurrency.symbol}
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 )}
               />
@@ -578,41 +654,37 @@ export default function EditListingSlide({
             variant="subtitle2"
             sx={{ fontWeight: 600, mb: 1.5, color: "#111827" }}
           >
-            Cashflow Range
+            Annual Cashflow
           </Typography>
           <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={6}>
+            <Grid item xs={12}>
               <Controller
                 name="min_cashflow"
                 control={control}
                 render={({ field }) => (
                   <TextField
-                    {...field}
-                    label="Min Cashflow"
-                    type="number"
+                    name={field.name}
+                    inputRef={field.ref}
+                    label="Cashflow"
+                    type="text"
                     fullWidth
                     size="small"
                     disabled={isViewMode}
                     error={!!errors.min_cashflow}
                     helperText={errors.min_cashflow?.message}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="max_cashflow"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Max Cashflow"
-                    type="number"
-                    fullWidth
-                    size="small"
-                    disabled={isViewMode}
-                    error={!!errors.max_cashflow}
-                    helperText={errors.max_cashflow?.message}
+                    value={formatNumberDisplay(field.value)}
+                    onBlur={field.onBlur}
+                    onChange={(event) =>
+                      field.onChange(parseNumberInput(event.target.value))
+                    }
+                    inputProps={{ inputMode: "numeric", maxLength: 15 }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          {selectedCurrency.symbol}
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 )}
               />
@@ -627,7 +699,7 @@ export default function EditListingSlide({
             Team Details
           </Typography>
           <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={12}>
               <Controller
                 name="no_of_employees"
                 control={control}
@@ -645,23 +717,6 @@ export default function EditListingSlide({
                 )}
               />
             </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name="reference_no"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Reference No"
-                    fullWidth
-                    size="small"
-                    disabled={isViewMode}
-                    error={!!errors.reference_no}
-                    helperText={errors.reference_no?.message}
-                  />
-                )}
-              />
-            </Grid>
           </Grid>
 
           {/* Location */}
@@ -669,10 +724,10 @@ export default function EditListingSlide({
             variant="subtitle2"
             sx={{ fontWeight: 600, mb: 1.5, color: "#111827" }}
           >
-            Country & City
+            Country, State & City
           </Typography>
           <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={4}>
               <Controller
                 name="country"
                 control={control}
@@ -695,7 +750,7 @@ export default function EditListingSlide({
                 )}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={4}>
               <Controller
                 name="state"
                 control={control}
@@ -706,16 +761,47 @@ export default function EditListingSlide({
                     disabled={isViewMode || !selectedCountryName}
                     error={!!errors.state}
                   >
+                    <InputLabel>State</InputLabel>
+                    <Select {...field} label="State">
+                      {selectedCountryName && stateOptions.length === 0 && (
+                        <MenuItem disabled value="">
+                          No states available
+                        </MenuItem>
+                      )}
+                      {stateOptions.map((state) => (
+                        <MenuItem
+                          key={`${state.countryCode}-${state.isoCode}`}
+                          value={state.name}
+                        >
+                          {state.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <Controller
+                name="city"
+                control={control}
+                render={({ field }) => (
+                  <FormControl
+                    fullWidth
+                    size="small"
+                    disabled={isViewMode || !selectedStateName}
+                    error={!!errors.city}
+                  >
                     <InputLabel>City</InputLabel>
                     <Select {...field} label="City">
-                      {selectedCountryName && cityOptions.length === 0 && (
+                      {selectedStateName && cityOptions.length === 0 && (
                         <MenuItem disabled value="">
                           No cities available
                         </MenuItem>
                       )}
                       {cityOptions.map((city) => (
                         <MenuItem
-                          key={`${city.countryCode}-${city.name}`}
+                          key={`${city.countryCode}-${city.stateCode}-${city.name}`}
                           value={city.name}
                         >
                           {city.name}
@@ -948,6 +1034,27 @@ export default function EditListingSlide({
               ))}
             </Box>
           )}
+
+          <Divider sx={{ my: 2 }} />
+          <Controller
+            name="reference_no"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Reference ID"
+                fullWidth
+                size="small"
+                disabled={isViewMode}
+                error={!!errors.reference_no}
+                helperText={
+                  errors.reference_no?.message || "Maximum 6 characters"
+                }
+                inputProps={{ maxLength: 6 }}
+                sx={{ mb: 2 }}
+              />
+            )}
+          />
         </Box>
       </Box>
 
