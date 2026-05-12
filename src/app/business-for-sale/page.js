@@ -49,6 +49,8 @@ const formatCurrency = (value) => {
   return `$${value}`;
 };
 
+const SITE_URL = "https://bizforsale.io";
+
 export default function BusinessForSalePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -320,392 +322,438 @@ export default function BusinessForSalePage() {
     );
   };
 
+  const collectionPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${SITE_URL}/business-for-sale/#page`,
+    url: `${SITE_URL}/business-for-sale`,
+    name: "Businesses For Sale",
+    description:
+      "Browse verified businesses for sale across every industry on BizForSale.io.",
+    isPartOf: {
+      "@id": `${SITE_URL}/#website`,
+    },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: SITE_URL,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Businesses For Sale",
+          item: `${SITE_URL}/business-for-sale`,
+        },
+      ],
+    },
+  };
+
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-          🏢 Business Listings
-        </Typography>
-        <Typography variant="body2" sx={{ color: "#6b7280" }}>
-          Explore approved business opportunities
-        </Typography>
-      </Box>
-
-      {/* Search Bar */}
-      <Paper sx={{ p: 2, mb: 3, backgroundColor: "#ffffff" }}>
-        <TextField
-          fullWidth
-          placeholder="Search by title, description..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          InputProps={{
-            startAdornment: <FiSearch size={20} style={{ marginRight: 12 }} />,
-          }}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              height: 48,
-            },
-          }}
-        />
-      </Paper>
-
-      <Grid container spacing={3}>
-        {/* Left Sidebar - Filters */}
-        <Grid item xs={12} md={3}>
-          <Paper
-            sx={{
-              p: 2.5,
-              backgroundColor: "#f9fafb",
-              position: "sticky",
-              top: 20,
-            }}
+    <>
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(collectionPageSchema),
+        }}
+      />
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        {/* Header */}
+        <Box sx={{ mb: 4 }}>
+          <Typography
+            variant="h1"
+            sx={{ fontWeight: 700, mb: 1, fontSize: "2rem" }}
           >
-            {/* Header */}
-            <Box
+            🏢 Business Listings
+          </Typography>
+          <Typography variant="body2" sx={{ color: "#6b7280" }}>
+            Explore approved business opportunities
+          </Typography>
+        </Box>
+
+        {/* Search Bar */}
+        <Paper sx={{ p: 2, mb: 3, backgroundColor: "#ffffff" }}>
+          <TextField
+            fullWidth
+            placeholder="Search by title, description..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            InputProps={{
+              startAdornment: (
+                <FiSearch size={20} style={{ marginRight: 12 }} />
+              ),
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                height: 48,
+              },
+            }}
+          />
+        </Paper>
+
+        <Grid container spacing={3}>
+          {/* Left Sidebar - Filters */}
+          <Grid item xs={12} md={3}>
+            <Paper
               sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 2,
+                p: 2.5,
+                backgroundColor: "#f9fafb",
+                position: "sticky",
+                top: 20,
               }}
             >
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                Filters
-              </Typography>
-              <Button
-                size="small"
-                onClick={handleResetFilters}
+              {/* Header */}
+              <Box
                 sx={{
-                  textTransform: "none",
-                  color: "#0884ff",
-                  "&:hover": { backgroundColor: "rgba(8, 132, 255, 0.08)" },
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2,
                 }}
               >
-                Reset
-              </Button>
-            </Box>
-
-            {/* Category Filter */}
-            <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={category}
-                label="Category"
-                onChange={(e) => {
-                  setCategory(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <MenuItem value="">All Categories</MenuItem>
-                {filterOptions.categories?.map((cat) => (
-                  <MenuItem key={cat} value={cat}>
-                    {cat}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* Status Filter */}
-            <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={status}
-                label="Status"
-                onChange={(e) => {
-                  setStatus(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <MenuItem value="">All Status</MenuItem>
-                <MenuItem value="available">Available</MenuItem>
-                <MenuItem value="loi">LOI</MenuItem>
-                <MenuItem value="sold">Sold</MenuItem>
-              </Select>
-            </FormControl>
-
-            {/* Tags Filter */}
-            <TagsSelect
-              value={tag}
-              onChange={(e) => {
-                setTag(e.target.value);
-                setPage(1);
-              }}
-            />
-
-            {/* Country Filter */}
-            <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-              <InputLabel>Country</InputLabel>
-              <Select
-                value={country}
-                label="Country"
-                onChange={(e) => {
-                  setCountry(e.target.value);
-                  setState(""); // Reset state when country changes
-                  setPage(1);
-                }}
-              >
-                <MenuItem value="">All Countries</MenuItem>
-                {filterOptions.countries?.map((c) => (
-                  <MenuItem key={c} value={c}>
-                    {c}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {/* State Filter */}
-            {country !== "" && (
-              <TextField
-                fullWidth
-                size="small"
-                label="State"
-                value={state}
-                onChange={(e) => {
-                  setState(e.target.value);
-                  setPage(1);
-                }}
-                sx={{ mb: 2 }}
-              />
-            )}
-
-            {/* Range Filters */}
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, mb: 1, mt: 2 }}
-            >
-              Financial Ranges
-            </Typography>
-            <RangeFilterPopover
-              label="Price"
-              value={priceRange}
-              onApply={(nextRange) => {
-                setPriceRange(nextRange);
-                setPage(1);
-              }}
-              presets={PRICE_PRESETS}
-              minLimit={PRICE_LIMITS[0]}
-              maxLimit={PRICE_LIMITS[1]}
-              step={100000}
-              formatValue={formatCurrency}
-            />
-            <RangeFilterPopover
-              label="Revenue"
-              value={revenueRange}
-              onApply={(nextRange) => {
-                setRevenueRange(nextRange);
-                setPage(1);
-              }}
-              presets={REVENUE_PRESETS}
-              minLimit={REVENUE_LIMITS[0]}
-              maxLimit={REVENUE_LIMITS[1]}
-              step={500000}
-              formatValue={formatCurrency}
-            />
-            <RangeFilterPopover
-              label="Cashflow"
-              value={cashflowRange}
-              onApply={(nextRange) => {
-                setCashflowRange(nextRange);
-                setPage(1);
-              }}
-              presets={CASHFLOW_PRESETS}
-              minLimit={CASHFLOW_LIMITS[0]}
-              maxLimit={CASHFLOW_LIMITS[1]}
-              step={500000}
-              formatValue={formatCurrency}
-            />
-            <RangeFilterPopover
-              label="No. of Employees"
-              value={employeeRange}
-              onApply={(nextRange) => {
-                setEmployeeRange(nextRange);
-                setPage(1);
-              }}
-              presets={EMPLOYEE_PRESETS}
-              minLimit={EMPLOYEE_LIMITS[0]}
-              maxLimit={EMPLOYEE_LIMITS[1]}
-              step={1}
-              formatValue={(value) => String(value)}
-              formatPresetValue={(value) =>
-                Number(value).toLocaleString("en-US")
-              }
-            />
-
-            {/* Special Features */}
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, mb: 1, mt: 2 }}
-            >
-              Special Features
-            </Typography>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={featured}
-                  onChange={(e) => {
-                    setFeatured(e.target.checked);
-                    setPage(1);
-                  }}
-                />
-              }
-              label="Featured Only"
-              sx={{ display: "block", mb: 1 }}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={sbaApproved}
-                  onChange={(e) => {
-                    setSbaApproved(e.target.checked);
-                    setPage(1);
-                  }}
-                />
-              }
-              label="SBA Approved"
-              sx={{ display: "block", mb: 1 }}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={sellerFinancing}
-                  onChange={(e) => {
-                    setSellerFinancing(e.target.checked);
-                    setPage(1);
-                  }}
-                />
-              }
-              label="Seller Financing"
-              sx={{ display: "block", mb: 1 }}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={distressed}
-                  onChange={(e) => {
-                    setDistressed(e.target.checked);
-                    setPage(1);
-                  }}
-                />
-              }
-              label="Distressed Sales"
-              sx={{ display: "block", mb: 1 }}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={remote}
-                  onChange={(e) => {
-                    setRemote(e.target.checked);
-                    setPage(1);
-                  }}
-                />
-              }
-              label="Remote Business"
-              sx={{ display: "block" }}
-            />
-          </Paper>
-        </Grid>
-
-        {/* Right Content - Listings Grid */}
-        <Grid item xs={12} md={9}>
-          {loading ? (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                minHeight: 400,
-              }}
-            >
-              <CircularProgress />
-            </Box>
-          ) : listings.length === 0 ? (
-            <Box
-              sx={{
-                textAlign: "center",
-                py: 8,
-                color: "#9ca3af",
-              }}
-            >
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                No listings found
-              </Typography>
-              <Typography variant="body2">
-                Try adjusting your filters
-              </Typography>
-            </Box>
-          ) : (
-            <>
-              {/* Active Filters */}
-              {tag && (
-                <Box
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  Filters
+                </Typography>
+                <Button
+                  size="small"
+                  onClick={handleResetFilters}
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    mb: 2,
-                    flexWrap: "wrap",
+                    textTransform: "none",
+                    color: "#0884ff",
+                    "&:hover": { backgroundColor: "rgba(8, 132, 255, 0.08)" },
                   }}
                 >
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#6b7280", fontWeight: 500 }}
-                  >
-                    Active filters:
-                  </Typography>
-                  <Chip
-                    label={`Tag: ${tag}`}
-                    onDelete={() => {
-                      setTag("");
+                  Reset
+                </Button>
+              </Box>
+
+              {/* Category Filter */}
+              <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                <InputLabel>Category</InputLabel>
+                <Select
+                  value={category}
+                  label="Category"
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    setPage(1);
+                  }}
+                >
+                  <MenuItem value="">All Categories</MenuItem>
+                  {filterOptions.categories?.map((cat) => (
+                    <MenuItem key={cat} value={cat}>
+                      {cat}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Status Filter */}
+              <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={status}
+                  label="Status"
+                  onChange={(e) => {
+                    setStatus(e.target.value);
+                    setPage(1);
+                  }}
+                >
+                  <MenuItem value="">All Status</MenuItem>
+                  <MenuItem value="available">Available</MenuItem>
+                  <MenuItem value="loi">LOI</MenuItem>
+                  <MenuItem value="sold">Sold</MenuItem>
+                </Select>
+              </FormControl>
+
+              {/* Tags Filter */}
+              <TagsSelect
+                value={tag}
+                onChange={(e) => {
+                  setTag(e.target.value);
+                  setPage(1);
+                }}
+              />
+
+              {/* Country Filter */}
+              <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                <InputLabel>Country</InputLabel>
+                <Select
+                  value={country}
+                  label="Country"
+                  onChange={(e) => {
+                    setCountry(e.target.value);
+                    setState(""); // Reset state when country changes
+                    setPage(1);
+                  }}
+                >
+                  <MenuItem value="">All Countries</MenuItem>
+                  {filterOptions.countries?.map((c) => (
+                    <MenuItem key={c} value={c}>
+                      {c}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* State Filter */}
+              {country !== "" && (
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="State"
+                  value={state}
+                  onChange={(e) => {
+                    setState(e.target.value);
+                    setPage(1);
+                  }}
+                  sx={{ mb: 2 }}
+                />
+              )}
+
+              {/* Range Filters */}
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 600, mb: 1, mt: 2 }}
+              >
+                Financial Ranges
+              </Typography>
+              <RangeFilterPopover
+                label="Price"
+                value={priceRange}
+                onApply={(nextRange) => {
+                  setPriceRange(nextRange);
+                  setPage(1);
+                }}
+                presets={PRICE_PRESETS}
+                minLimit={PRICE_LIMITS[0]}
+                maxLimit={PRICE_LIMITS[1]}
+                step={100000}
+                formatValue={formatCurrency}
+              />
+              <RangeFilterPopover
+                label="Revenue"
+                value={revenueRange}
+                onApply={(nextRange) => {
+                  setRevenueRange(nextRange);
+                  setPage(1);
+                }}
+                presets={REVENUE_PRESETS}
+                minLimit={REVENUE_LIMITS[0]}
+                maxLimit={REVENUE_LIMITS[1]}
+                step={500000}
+                formatValue={formatCurrency}
+              />
+              <RangeFilterPopover
+                label="Cashflow"
+                value={cashflowRange}
+                onApply={(nextRange) => {
+                  setCashflowRange(nextRange);
+                  setPage(1);
+                }}
+                presets={CASHFLOW_PRESETS}
+                minLimit={CASHFLOW_LIMITS[0]}
+                maxLimit={CASHFLOW_LIMITS[1]}
+                step={500000}
+                formatValue={formatCurrency}
+              />
+              <RangeFilterPopover
+                label="No. of Employees"
+                value={employeeRange}
+                onApply={(nextRange) => {
+                  setEmployeeRange(nextRange);
+                  setPage(1);
+                }}
+                presets={EMPLOYEE_PRESETS}
+                minLimit={EMPLOYEE_LIMITS[0]}
+                maxLimit={EMPLOYEE_LIMITS[1]}
+                step={1}
+                formatValue={(value) => String(value)}
+                formatPresetValue={(value) =>
+                  Number(value).toLocaleString("en-US")
+                }
+              />
+
+              {/* Special Features */}
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 600, mb: 1, mt: 2 }}
+              >
+                Special Features
+              </Typography>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={featured}
+                    onChange={(e) => {
+                      setFeatured(e.target.checked);
                       setPage(1);
                     }}
-                    size="small"
-                    sx={{
-                      backgroundColor: "#dbeafe",
-                      color: "#0284c7",
-                      fontWeight: 600,
-                      "& .MuiChip-deleteIcon": { color: "#0284c7" },
+                  />
+                }
+                label="Featured Only"
+                sx={{ display: "block", mb: 1 }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={sbaApproved}
+                    onChange={(e) => {
+                      setSbaApproved(e.target.checked);
+                      setPage(1);
                     }}
                   />
-                </Box>
-              )}
-
-              {/* Results Count */}
-              <Typography variant="body2" sx={{ mb: 2, color: "#6b7280" }}>
-                Showing {listings.length} listings
-              </Typography>
-
-              {/* Listings Grid */}
-              <Grid container spacing={2}>
-                {listings.map((listing) => (
-                  <Grid item xs={12} sm={6} lg={4} key={listing.id}>
-                    <ListingCard
-                      listing={listing}
-                      onFavoriteChange={handleFavoriteChange}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-                  <Pagination
-                    count={totalPages}
-                    page={page}
-                    onChange={handlePageChange}
-                    color="primary"
+                }
+                label="SBA Approved"
+                sx={{ display: "block", mb: 1 }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={sellerFinancing}
+                    onChange={(e) => {
+                      setSellerFinancing(e.target.checked);
+                      setPage(1);
+                    }}
                   />
-                </Box>
-              )}
-            </>
-          )}
+                }
+                label="Seller Financing"
+                sx={{ display: "block", mb: 1 }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={distressed}
+                    onChange={(e) => {
+                      setDistressed(e.target.checked);
+                      setPage(1);
+                    }}
+                  />
+                }
+                label="Distressed Sales"
+                sx={{ display: "block", mb: 1 }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={remote}
+                    onChange={(e) => {
+                      setRemote(e.target.checked);
+                      setPage(1);
+                    }}
+                  />
+                }
+                label="Remote Business"
+                sx={{ display: "block" }}
+              />
+            </Paper>
+          </Grid>
+
+          {/* Right Content - Listings Grid */}
+          <Grid item xs={12} md={9}>
+            {loading ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  minHeight: 400,
+                }}
+              >
+                <CircularProgress />
+              </Box>
+            ) : listings.length === 0 ? (
+              <Box
+                sx={{
+                  textAlign: "center",
+                  py: 8,
+                  color: "#9ca3af",
+                }}
+              >
+                <Typography variant="h6" sx={{ mb: 1 }}>
+                  No listings found
+                </Typography>
+                <Typography variant="body2">
+                  Try adjusting your filters
+                </Typography>
+              </Box>
+            ) : (
+              <>
+                {/* Active Filters */}
+                {tag && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 2,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "#6b7280", fontWeight: 500 }}
+                    >
+                      Active filters:
+                    </Typography>
+                    <Chip
+                      label={`Tag: ${tag}`}
+                      onDelete={() => {
+                        setTag("");
+                        setPage(1);
+                      }}
+                      size="small"
+                      sx={{
+                        backgroundColor: "#dbeafe",
+                        color: "#0284c7",
+                        fontWeight: 600,
+                        "& .MuiChip-deleteIcon": { color: "#0284c7" },
+                      }}
+                    />
+                  </Box>
+                )}
+
+                {/* Results Count */}
+                <Typography variant="body2" sx={{ mb: 2, color: "#6b7280" }}>
+                  Showing {listings.length} listings
+                </Typography>
+
+                {/* Listings Grid */}
+                <Grid container spacing={2}>
+                  {listings.map((listing) => (
+                    <Grid item xs={12} sm={6} lg={4} key={listing.id}>
+                      <ListingCard
+                        listing={listing}
+                        onFavoriteChange={handleFavoriteChange}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <Box
+                    sx={{ display: "flex", justifyContent: "center", mt: 4 }}
+                  >
+                    <Pagination
+                      count={totalPages}
+                      page={page}
+                      onChange={handlePageChange}
+                      color="primary"
+                    />
+                  </Box>
+                )}
+              </>
+            )}
+          </Grid>
         </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </>
   );
 }

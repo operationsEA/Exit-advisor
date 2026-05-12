@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Card,
   CardMedia,
@@ -263,14 +264,15 @@ export default function ListingCard({
         {/* Image Section */}
         <Box sx={{ position: "relative", overflow: "hidden", height: 200 }}>
           {currentImageUrl ? (
-            <CardMedia
-              component="div"
-              sx={{
-                height: "100%",
-                backgroundImage: `url(${currentImageUrl})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
+            <Image
+              src={currentImageUrl}
+              alt={listing.title || "Listing image"}
+              fill
+              style={{
+                objectFit: "cover",
+                objectPosition: "center",
               }}
+              priority={false}
             />
           ) : (
             <Box

@@ -25,7 +25,7 @@ export default function SellerListingPage() {
           mb: 4,
         }}
       >
-        <Typography variant="h4" sx={{ fontWeight: "bold", color: "#111827" }}>
+        <Typography variant="h1" sx={{ fontWeight: "bold", color: "#111827" }}>
           My Listings
         </Typography>
         <Button

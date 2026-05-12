@@ -40,21 +40,6 @@ const FEATURE_FLAGS = [
   { key: "is_featured", label: "Featured", icon: "⭐" },
 ];
 
-export async function generateMetadata(props) {
-  const { id } = await props.params;
-  const result = await getListingDetail(id);
-
-  if (!result.success) {
-    return { title: "Listing Not Found" };
-  }
-
-  const listing = result.data;
-  return {
-    title: listing.title,
-    description: listing.description?.substring(0, 160),
-  };
-}
-
 export default async function ListingDetailPage(props) {
   const { id } = await props.params;
 

@@ -3,6 +3,7 @@ import Navbar from "@/components/Layout/Navbar";
 import Footer from "@/components/Layout/Footer";
 import ChatWidget from "@/components/ChatSystem/ChatWidget";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { inter, poppins, firaCode } from "@/theme/fonts";
 import "./globals.css";
 
 const SITE_URL = "https://bizforsale.io";
@@ -64,7 +65,7 @@ export const metadata = {
       "Discover thousands of verified businesses for sale. Buy or sell businesses across every industry on the most trusted business marketplace.",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "BizForSale.io - Business Marketplace",
@@ -79,7 +80,7 @@ export const metadata = {
     title: "BizForSale.io | Buy & Sell Profitable Businesses",
     description:
       "The #1 marketplace to find verified businesses for sale. Browse listings or sell your business today.",
-    images: ["/og-image.jpg"],
+    images: ["/og-image.png"],
   },
   alternates: {
     canonical: SITE_URL,
@@ -88,7 +89,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${poppins.variable} ${firaCode.variable}`}>
       <head>
         {/* Organization Schema */}
         <script
