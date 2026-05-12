@@ -48,6 +48,9 @@ export default function Sidebar() {
     ...(user
       ? [{ icon: FiMessageSquare, label: "Chats", href: "/dashboard/chats" }]
       : []),
+    ...(role === "admin"
+      ? [{ icon: FiBriefcase, label: "Blogs", href: "/dashboard/blogs" }]
+      : []),
   ];
 
   const sidebarContent = (

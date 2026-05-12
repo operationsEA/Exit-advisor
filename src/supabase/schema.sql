@@ -12,16 +12,20 @@ CREATE TABLE public.active_chats (
   CONSTRAINT active_chats_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.blogs (
-  id bigint NOT NULL DEFAULT nextval('"Blogs_id_seq"'::regclass),
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
-  title text NOT NULL,
-  image_url text,
-  keywords text,
-  body text,
-  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  title character varying NOT NULL,
+  slug character varying NOT NULL UNIQUE,
+  excerpt text,
+  content text NOT NULL,
+  featured_image_url text,
+  category_id character varying,
+  status USER-DEFINED NOT NULL DEFAULT 'draft'::blog_status_t,
+  published_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT blogs_pkey PRIMARY KEY (id),
-  CONSTRAINT Blogs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+  CONSTRAINT blogs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
 );
 CREATE TABLE public.bulk_upload_logs (
   id bigint NOT NULL DEFAULT nextval('"Bulk_Upload_Logs_id_seq"'::regclass),
