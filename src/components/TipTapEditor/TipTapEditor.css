@@ -1,0 +1,326 @@
+/* TipTap Editor Styles */
+
+.ProseMirror {
+  position: relative;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Headings */
+.ProseMirror h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 1.5rem 0 0.5rem 0;
+}
+
+.ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.25rem 0 0.5rem 0;
+}
+
+.ProseMirror h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  color: #0f172a;
+}
+
+/* Paragraphs */
+.ProseMirror p {
+  margin: 0.5rem 0;
+}
+
+/* Lists */
+.ProseMirror ul,
+.ProseMirror ol {
+  padding: 0 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.ProseMirror li {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+  display: list-item;
+  color: #1f2937;
+}
+
+.ProseMirror li p {
+  margin: 0;
+  display: inline;
+}
+
+.ProseMirror ul li {
+  list-style-type: disc;
+  list-style-position: outside;
+}
+
+.ProseMirror ul li::marker {
+  color: #0884ff;
+  font-weight: 600;
+}
+
+.ProseMirror ol li {
+  list-style-type: decimal;
+  list-style-position: outside;
+}
+
+.ProseMirror ol li::marker {
+  color: #0884ff;
+  font-weight: 600;
+}
+
+/* Nested lists */
+.ProseMirror ul ul,
+.ProseMirror ol ol,
+.ProseMirror ul ol,
+.ProseMirror ol ul {
+  margin: 0.5rem 0;
+}
+
+/* Blockquote */
+.ProseMirror blockquote {
+  border-left: 4px solid #0884ff;
+  background: linear-gradient(to right, rgba(8, 132, 255, 0.05), transparent);
+  color: #374151;
+  font-style: italic;
+  margin: 1.25rem 0;
+  padding: 0.75rem 0 0.75rem 1.25rem;
+  border-radius: 0 4px 4px 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(8, 132, 255, 0.1);
+}
+
+/* Code */
+.ProseMirror code {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  color: #dc2626;
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.25rem 0.6rem;
+  letter-spacing: 0.3px;
+  display: inline-block;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.ProseMirror pre {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  border-radius: 8px;
+  color: #f3f4f6;
+  font-family: 'Fira Code', 'Courier New', monospace;
+  overflow-x: auto;
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.ProseMirror pre::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), transparent);
+  border-radius: 8px 8px 0 0;
+  pointer-events: none;
+}
+
+.ProseMirror pre code {
+  background: none;
+  color: #f3f4f6;
+  font-size: 0.9rem;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  letter-spacing: normal;
+  display: block;
+  font-weight: normal;
+}
+
+.ProseMirror pre code span {
+  color: inherit;
+}
+
+/* Code block scrollbar styling */
+.ProseMirror pre::-webkit-scrollbar {
+  height: 8px;
+}
+
+.ProseMirror pre::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.ProseMirror pre::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.ProseMirror pre::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Horizontal rule */
+.ProseMirror hr {
+  border: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #cbd5e1, transparent);
+  margin: 1.5rem 0;
+  border-radius: 1px;
+}
+
+/* Strong and emphasis */
+.ProseMirror strong {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ProseMirror em {
+  font-style: italic;
+  color: #1f2937;
+}
+
+.ProseMirror strong em,
+.ProseMirror em strong {
+  font-weight: 700;
+  font-style: italic;
+}
+
+.ProseMirror s {
+  text-decoration: line-through;
+  color: #9ca3af;
+  opacity: 0.8;
+}
+
+/* Links */
+.ProseMirror a {
+  color: #0884ff;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.ProseMirror a:hover {
+  color: #0668cc;
+  text-decoration-color: #0668cc;
+  background-color: rgba(8, 132, 255, 0.1);
+  border-radius: 2px;
+  padding: 0 2px;
+  margin: 0 -2px;
+}
+
+.ProseMirror a:focus {
+  outline: 2px solid #0884ff;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Tables (if added in future) */
+.ProseMirror table {
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  overflow: hidden;
+  table-layout: fixed;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.ProseMirror table td,
+.ProseMirror table th {
+  border: 1px solid #e5e7eb;
+  min-width: 1em;
+  padding: 0.75rem 1rem;
+  position: relative;
+  vertical-align: top;
+  font-size: 0.95rem;
+}
+
+.ProseMirror table th {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  font-weight: 700;
+  text-align: left;
+  color: #0f172a;
+  border-bottom: 2px solid #d1d5db;
+}
+
+.ProseMirror table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.ProseMirror table tbody tr:hover {
+  background-color: rgba(8, 132, 255, 0.05);
+}
+
+.ProseMirror table tbody tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Selection */
+.ProseMirror::selection {
+  background-color: #dbeafe;
+  color: inherit;
+}
+
+.ProseMirror .selection {
+  background-color: rgba(8, 132, 255, 0.2);
+}
+
+/* Focus state */
+.ProseMirror:focus {
+  outline: 2px solid #0884ff;
+  outline-offset: 0;
+}
+
+/* Placeholder */
+.ProseMirror.is-empty::before {
+  color: #d1d5db;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Paragraph with placeholder */
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #d1d5db;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  font-style: italic;
+  font-weight: 400;
+}
