@@ -61,7 +61,7 @@ export default function Footer() {
             <Typography variant="body2" sx={{ color: "#9ca3af", mb: 3 }}>
               The trusted marketplace for buying and selling businesses online.
             </Typography>
-            <Box sx={{ display: "flex", gap: 2 }}>
+            {/* <Box sx={{ display: "flex", gap: 2 }}>
               <MuiLink
                 href="#"
                 target="_blank"
@@ -90,7 +90,7 @@ export default function Footer() {
               >
                 <FiInstagram size={20} />
               </MuiLink>
-            </Box>
+            </Box> */}
           </Grid>
 
           {/* Quick Links */}

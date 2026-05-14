@@ -268,6 +268,7 @@ export default function ListingCard({
               src={currentImageUrl}
               alt={listing.title || "Listing image"}
               fill
+              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 50vw, 30vw"
               style={{
                 objectFit: "cover",
                 objectPosition: "center",
