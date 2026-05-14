@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "generate-sitemap": "node scripts/generate-sitemap.js"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
@@ -22,6 +23,7 @@
     "@tiptap/react": "^3.23.1",
     "@tiptap/starter-kit": "^3.23.1",
     "country-state-city": "^3.2.1",
+    "dotenv": "^17.4.2",
     "firebase": "^12.11.0",
     "firebase-admin": "^13.8.0",
     "next": "16.2.2",
