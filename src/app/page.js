@@ -34,7 +34,7 @@ export const metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "BizForSale.io - Browse Businesses For Sale",
@@ -46,7 +46,7 @@ export const metadata = {
     title: "BizForSale.io | Buy & Sell Businesses Online",
     description:
       "Browse verified businesses for sale across every industry. Find your perfect business opportunity today.",
-    images: ["/og-image.jpg"],
+    images: ["/og-image.png"],
   },
   alternates: {
     canonical: SITE_URL,
