@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import {
   Box,
   Container,
@@ -16,7 +15,6 @@ import { createBrowserSupabaseClient } from "@/supabase/client";
 import { createUserProfile, getUserProfile } from "@/supabase/auth-helpers";
 
 export default function VerifyPage() {
-  const searchParams = useSearchParams();
   const [status, setStatus] = useState("verifying"); // verifying, success, error
   const [message, setMessage] = useState("");
   const supabase = createBrowserSupabaseClient();

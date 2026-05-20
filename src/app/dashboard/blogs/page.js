@@ -18,6 +18,7 @@ import {
   Grid,
   IconButton,
   Typography,
+  Container,
 } from "@mui/material";
 import {
   FiPlus,
@@ -160,275 +161,280 @@ export default function BlogsPage() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Blogs
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<FiPlus size={18} />}
-          onClick={handleCreateBlog}
-          sx={{ textTransform: "none" }}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
         >
-          Create Blog
-        </Button>
-      </Box>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-          <CircularProgress size={30} />
-        </Box>
-      ) : blogs.length === 0 ? (
-        <Card sx={{ p: 4, textAlign: "center" }}>
-          <Typography sx={{ color: "#6b7280", mb: 2 }}>
-            No blogs created yet
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Blogs
           </Typography>
           <Button
             variant="contained"
             startIcon={<FiPlus size={18} />}
             onClick={handleCreateBlog}
+            sx={{ textTransform: "none" }}
           >
-            Create Your First Blog
+            Create Blog
           </Button>
-        </Card>
-      ) : (
-        <Grid container spacing={2}>
-          {blogs.map((blog) => {
-            const statusInfo =
-              STATUS_COLORS[blog.status] || STATUS_COLORS.draft;
-            return (
-              <Grid item xs={12} sm={6} md={4} key={blog.id}>
-                <Card
-                  sx={{
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
-                      transform: "translateY(-4px)",
-                    },
-                  }}
-                >
-                  {/* Featured Image */}
-                  <Box
+        </Box>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+            <CircularProgress size={30} />
+          </Box>
+        ) : blogs.length === 0 ? (
+          <Card sx={{ p: 4, textAlign: "center" }}>
+            <Typography sx={{ color: "#6b7280", mb: 2 }}>
+              No blogs created yet
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<FiPlus size={18} />}
+              onClick={handleCreateBlog}
+            >
+              Create Your First Blog
+            </Button>
+          </Card>
+        ) : (
+          <Grid container spacing={2}>
+            {blogs.map((blog) => {
+              const statusInfo =
+                STATUS_COLORS[blog.status] || STATUS_COLORS.draft;
+              return (
+                <Grid item xs={12} sm={6} md={4} key={blog.id}>
+                  <Card
                     sx={{
-                      position: "relative",
-                      width: "100%",
-                      height: 180,
-                      backgroundColor: "#f3f4f6",
+                      height: "100%",
                       display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      overflow: "hidden",
-                      borderBottom: "1px solid #e5e7eb",
+                      flexDirection: "column",
+                      transition: "all 0.3s ease",
+                      "&:hover": {
+                        boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+                        transform: "translateY(-4px)",
+                      },
                     }}
                   >
-                    {blog.featured_image_url ? (
-                      <Box
-                        component="img"
-                        src={blog.featured_image_url}
-                        alt={blog.title}
-                        sx={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ) : (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          gap: 1,
-                          color: "#9ca3af",
-                        }}
-                      >
-                        <FiImage size={32} />
-                        <Typography variant="caption">No image</Typography>
-                      </Box>
-                    )}
-
-                    {/* Upload Button Overlay */}
+                    {/* Featured Image */}
                     <Box
-                      component="label"
                       sx={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: "rgba(0, 0, 0, 0)",
+                        position: "relative",
+                        width: "100%",
+                        height: 180,
+                        backgroundColor: "#f3f4f6",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        "&:hover": {
-                          backgroundColor: "rgba(0, 0, 0, 0.5)",
-                        },
+                        overflow: "hidden",
+                        borderBottom: "1px solid #e5e7eb",
                       }}
                     >
-                      <Button
-                        component="span"
-                        variant="contained"
-                        size="small"
-                        startIcon={<FiImage size={14} />}
+                      {blog.featured_image_url ? (
+                        <Box
+                          component="img"
+                          src={blog.featured_image_url}
+                          alt={blog.title}
+                          sx={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 1,
+                            color: "#9ca3af",
+                          }}
+                        >
+                          <FiImage size={32} />
+                          <Typography variant="caption">No image</Typography>
+                        </Box>
+                      )}
+
+                      {/* Upload Button Overlay */}
+                      <Box
+                        component="label"
                         sx={{
-                          opacity: 0,
-                          transition: "opacity 0.2s ease",
-                          textTransform: "none",
-                          "&:hover": { opacity: 1 },
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          backgroundColor: "rgba(0, 0, 0, 0)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                          "&:hover": {
+                            backgroundColor: "rgba(0, 0, 0, 0.5)",
+                          },
                         }}
-                        onMouseEnter={(e) => (e.target.style.opacity = "1")}
                       >
-                        {uploadingBlogId === blog.id
-                          ? "Uploading..."
-                          : "Upload"}
-                      </Button>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={(e) =>
-                          handleImageUpload(
-                            e,
-                            blog.id,
-                            blog.featured_image_url,
-                            blog.slug,
-                          )
-                        }
-                        disabled={uploadingBlogId === blog.id}
-                      />
+                        <Button
+                          component="span"
+                          variant="contained"
+                          size="small"
+                          startIcon={<FiImage size={14} />}
+                          sx={{
+                            opacity: 0,
+                            transition: "opacity 0.2s ease",
+                            textTransform: "none",
+                            "&:hover": { opacity: 1 },
+                          }}
+                          onMouseEnter={(e) => (e.target.style.opacity = "1")}
+                        >
+                          {uploadingBlogId === blog.id
+                            ? "Uploading..."
+                            : "Upload"}
+                        </Button>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          hidden
+                          onChange={(e) =>
+                            handleImageUpload(
+                              e,
+                              blog.id,
+                              blog.featured_image_url,
+                              blog.slug,
+                            )
+                          }
+                          disabled={uploadingBlogId === blog.id}
+                        />
+                      </Box>
                     </Box>
-                  </Box>
 
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        mb: 1.5,
-                      }}
-                    >
-                      <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                        {blog.title}
-                      </Typography>
-                      <Chip
-                        icon={
-                          blog.status === "published" ? (
-                            <FiCheck size={14} />
-                          ) : (
-                            <FiClock size={14} />
-                          )
-                        }
-                        label={statusInfo.label}
-                        size="small"
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Box
                         sx={{
-                          backgroundColor: statusInfo.bg,
-                          color: statusInfo.text,
-                          fontWeight: 600,
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          mb: 1.5,
                         }}
-                      />
-                    </Box>
+                      >
+                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                          {blog.title}
+                        </Typography>
+                        <Chip
+                          icon={
+                            blog.status === "published" ? (
+                              <FiCheck size={14} />
+                            ) : (
+                              <FiClock size={14} />
+                            )
+                          }
+                          label={statusInfo.label}
+                          size="small"
+                          sx={{
+                            backgroundColor: statusInfo.bg,
+                            color: statusInfo.text,
+                            fontWeight: 600,
+                          }}
+                        />
+                      </Box>
 
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "#6b7280", mb: 1 }}
-                    >
-                      {blog.slug}
-                    </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: "#6b7280", mb: 1 }}
+                      >
+                        {blog.slug}
+                      </Typography>
 
-                    {blog.excerpt && (
+                      {blog.excerpt && (
+                        <Typography
+                          variant="caption"
+                          sx={{ color: "#9ca3af", display: "block" }}
+                        >
+                          {blog.excerpt.substring(0, 80)}
+                          {blog.excerpt.length > 80 ? "..." : ""}
+                        </Typography>
+                      )}
+
                       <Typography
                         variant="caption"
-                        sx={{ color: "#9ca3af", display: "block" }}
+                        sx={{ color: "#d1d5db", display: "block", mt: 1.5 }}
                       >
-                        {blog.excerpt.substring(0, 80)}
-                        {blog.excerpt.length > 80 ? "..." : ""}
+                        Created {new Date(blog.created_at).toLocaleDateString()}
                       </Typography>
-                    )}
+                    </CardContent>
 
-                    <Typography
-                      variant="caption"
-                      sx={{ color: "#d1d5db", display: "block", mt: 1.5 }}
-                    >
-                      Created {new Date(blog.created_at).toLocaleDateString()}
-                    </Typography>
-                  </CardContent>
-
-                  <CardActions sx={{ pt: 0 }}>
-                    <Button
-                      size="small"
-                      startIcon={<FiEdit2 size={14} />}
-                      onClick={() => handleEditBlog(blog.id)}
-                      sx={{ textTransform: "none", color: "#0884ff" }}
-                    >
-                      Edit
-                    </Button>
-                    {blog.status === "draft" && (
+                    <CardActions sx={{ pt: 0 }}>
                       <Button
                         size="small"
-                        startIcon={<FiCheck size={14} />}
-                        onClick={() => handlePublishBlog(blog.id)}
-                        sx={{ textTransform: "none", color: "#16a34a" }}
+                        startIcon={<FiEdit2 size={14} />}
+                        onClick={() => handleEditBlog(blog.id)}
+                        sx={{ textTransform: "none", color: "#0884ff" }}
                       >
-                        Publish
+                        Edit
                       </Button>
-                    )}
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDeleteClick(blog.id)}
-                      sx={{ ml: "auto", color: "#ef4444" }}
-                    >
-                      <FiTrash2 size={16} />
-                    </IconButton>
-                  </CardActions>
-                </Card>
-              </Grid>
-            );
-          })}
-        </Grid>
-      )}
+                      {blog.status === "draft" && (
+                        <Button
+                          size="small"
+                          startIcon={<FiCheck size={14} />}
+                          onClick={() => handlePublishBlog(blog.id)}
+                          sx={{ textTransform: "none", color: "#16a34a" }}
+                        >
+                          Publish
+                        </Button>
+                      )}
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDeleteClick(blog.id)}
+                        sx={{ ml: "auto", color: "#ef4444" }}
+                      >
+                        <FiTrash2 size={16} />
+                      </IconButton>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              );
+            })}
+          </Grid>
+        )}
 
-      <Dialog open={deleteDialog} onClose={() => setDeleteDialog(false)}>
-        <DialogTitle>Delete Blog?</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to delete this blog? This action cannot be
-            undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialog(false)} disabled={isDeleting}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirmDelete}
-            variant="contained"
-            color="error"
-            disabled={isDeleting}
-          >
-            {isDeleting ? "Deleting..." : "Delete"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+        <Dialog open={deleteDialog} onClose={() => setDeleteDialog(false)}>
+          <DialogTitle>Delete Blog?</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Are you sure you want to delete this blog? This action cannot be
+              undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => setDeleteDialog(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmDelete}
+              variant="contained"
+              color="error"
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    </Container>
   );
 }

@@ -1,6 +1,9 @@
 "use server";
 
-import { createServerSupabaseClient } from "@/supabase";
+import {
+  createServerSupabaseClient,
+  createPublicSupabaseClient,
+} from "@/supabase";
 
 export async function getAllBlogs() {
   try {
@@ -396,7 +399,7 @@ export async function uploadBlogImage(
 // Public blog functions (no auth required)
 export async function getPublishedBlogs(limit = 10, offset = 0) {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = createPublicSupabaseClient();
 
     const { data: blogs, error } = await supabase
       .from("blogs")
@@ -437,7 +440,7 @@ export async function getPublishedBlogs(limit = 10, offset = 0) {
 
 export async function getPublishedBlogBySlug(slug) {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = createPublicSupabaseClient();
 
     const { data: blog, error } = await supabase
       .from("blogs")

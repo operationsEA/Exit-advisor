@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Box,
@@ -12,7 +12,7 @@ import {
 import { verifyAndCreateProfile } from "@/app/auth/actions";
 import { useAuth } from "@/contexts/AuthContext";
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const searchParams = useSearchParams();
   const { refreshAuth } = useAuth();
   const role = searchParams.get("role");
@@ -66,5 +66,26 @@ export default function AuthCallbackPage() {
         )}
       </Box>
     </Container>
+  );
+}
+export default function AuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <Container maxWidth="sm" sx={{ py: 8 }}>
+          <Box sx={{ textAlign: "center" }}>
+            <CircularProgress sx={{ mb: 3, color: "#0884ff" }} />
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: "bold", mb: 2, color: "#111827" }}
+            >
+              Processing your login...
+            </Typography>
+          </Box>
+        </Container>
+      }
+    >
+      <AuthCallbackContent />
+    </Suspense>
   );
 }

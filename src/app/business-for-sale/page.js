@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Box,
@@ -49,7 +49,7 @@ const formatCurrency = (value) => {
   return `$${value}`;
 };
 
-export default function BusinessForSalePage() {
+function BusinessForSaleContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -707,5 +707,12 @@ export default function BusinessForSalePage() {
         </Grid>
       </Grid>
     </Container>
+  );
+}
+export default function BusinessForSalePage() {
+  return (
+    <Suspense fallback={null}>
+      <BusinessForSaleContent />
+    </Suspense>
   );
 }
