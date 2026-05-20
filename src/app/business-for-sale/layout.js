@@ -29,7 +29,7 @@ export const metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Browse Businesses For Sale - BizForSale.io",
@@ -41,7 +41,7 @@ export const metadata = {
     title: "Businesses For Sale | BizForSale.io",
     description:
       "Browse verified business listings. Filter by price, revenue, location, and category.",
-    images: ["/og-image.jpg"],
+    images: ["/og-image.png"],
   },
   alternates: {
     canonical: `${SITE_URL}/business-for-sale`,
@@ -49,44 +49,5 @@ export const metadata = {
 };
 
 export default function BusinessForSaleLayout({ children }) {
-  return (
-    <>
-      {/* CollectionPage Schema for the listing directory */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "CollectionPage",
-            "@id": `${SITE_URL}/business-for-sale/#page`,
-            url: `${SITE_URL}/business-for-sale`,
-            name: "Businesses For Sale",
-            description:
-              "Browse verified businesses for sale across every industry on BizForSale.io.",
-            isPartOf: {
-              "@id": `${SITE_URL}/#website`,
-            },
-            breadcrumb: {
-              "@type": "BreadcrumbList",
-              itemListElement: [
-                {
-                  "@type": "ListItem",
-                  position: 1,
-                  name: "Home",
-                  item: SITE_URL,
-                },
-                {
-                  "@type": "ListItem",
-                  position: 2,
-                  name: "Businesses For Sale",
-                  item: `${SITE_URL}/business-for-sale`,
-                },
-              ],
-            },
-          }),
-        }}
-      />
-      {children}
-    </>
-  );
+  return <>{children}</>;
 }

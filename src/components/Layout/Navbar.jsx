@@ -13,6 +13,7 @@ import {
   Divider,
 } from "@mui/material";
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { FiBriefcase, FiLogOut, FiUser, FiSettings } from "react-icons/fi";
 import { useRouter } from "next/navigation";
@@ -158,8 +159,12 @@ export default function Navbar() {
           >
             {/* Logo Skeleton */}
             <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <Skeleton variant="circular" width={28} height={28} />
-              <Skeleton variant="text" width={120} height={32} />
+              <Skeleton
+                variant="rectangular"
+                width={32}
+                height={32}
+                sx={{ borderRadius: 1 }}
+              />
             </Box>
 
             {/* Navigation Skeleton */}
@@ -214,16 +219,14 @@ export default function Navbar() {
               gap: "8px",
             }}
           >
-            <FiBriefcase size={28} color="#0884ff" />
-            <span
-              style={{
-                fontSize: "1.5rem",
-                fontWeight: "bold",
-                color: "#0884ff",
-              }}
-            >
-              BizForSale
-            </span>
+            <Image
+              src="/logo.png"
+              alt="BizForSale Logo"
+              width={32}
+              height={32}
+              priority
+              style={{ height: "auto" }}
+            />
           </Link>
 
           {/* Navigation Container */}

@@ -94,7 +94,10 @@ export default function BuyerListingPage() {
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header Section */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: "bold", color: "#111827" }}>
+        <Typography
+          variant="h1"
+          sx={{ fontWeight: "bold", color: "#111827", fontSize: "2rem" }}
+        >
           ❤️ My Favorite Listings
         </Typography>
         <Typography variant="body2" sx={{ color: "#6b7280", mt: 1 }}>

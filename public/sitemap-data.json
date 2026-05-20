@@ -1,0 +1,118 @@
+{
+  "static": [
+    {
+      "url": "/",
+      "priority": 1,
+      "changefreq": "daily"
+    },
+    {
+      "url": "/business-for-sale",
+      "priority": 0.9,
+      "changefreq": "daily"
+    },
+    {
+      "url": "/blogs",
+      "priority": 0.8,
+      "changefreq": "weekly"
+    },
+    {
+      "url": "/auth/login",
+      "priority": 0.5,
+      "changefreq": "monthly"
+    },
+    {
+      "url": "/auth/signup",
+      "priority": 0.5,
+      "changefreq": "monthly"
+    }
+  ],
+  "listings": [
+    {
+      "url": "/business-for-sale/restaurant-caf/retail-super-store/56ccd79f-bec9-4a98-aa55-1f64d809eae4",
+      "lastmod": "2026-04-14T10:23:41.067+00:00",
+      "priority": 0.7,
+      "changefreq": "weekly"
+    },
+    {
+      "url": "/business-for-sale/retail-store/retail-business/af6ca74f-3605-4a7a-bf91-027cad393c85",
+      "lastmod": "2026-04-21T09:14:02.338+00:00",
+      "priority": 0.7,
+      "changefreq": "weekly"
+    },
+    {
+      "url": "/business-for-sale/manufacturing/bluewave-digital-solutions/edc80be6-ff00-41e5-8b12-bcca98f684bb",
+      "lastmod": "2026-05-12T12:03:47.104+00:00",
+      "priority": 0.7,
+      "changefreq": "weekly"
+    },
+    {
+      "url": "/business-for-sale/real-estate-agency/mobile-repair-shop/4f3e7216-aa3b-496b-9809-ac65f31029c4",
+      "lastmod": "2026-05-12T12:03:28.311+00:00",
+      "priority": 0.7,
+      "changefreq": "weekly"
+    },
+    {
+      "url": "/business-for-sale/technology-startup/gym-fitness-center/377f4cc9-1272-4c20-b242-195d11d5a8b4",
+      "lastmod": "2026-04-21T11:45:36.414+00:00",
+      "priority": 0.7,
+      "changefreq": "weekly"
+    },
+    {
+      "url": "/business-for-sale/fitness-wellness/ai-saas-business/55ed8e01-4976-4d8a-aa96-7c8b8575ada7",
+      "lastmod": "2026-04-14T10:22:13.61+00:00",
+      "priority": 0.7,
+      "changefreq": "weekly"
+    },
+    {
+      "url": "/business-for-sale/marketing-agency/digital-marketing-agency/26121be9-e9f9-491c-987a-6f50bef8fcc5",
+      "lastmod": "2026-04-14T10:23:25.893+00:00",
+      "priority": 0.7,
+      "changefreq": "weekly"
+    },
+    {
+      "url": "/business-for-sale/e-commerce-business/e-commerce-clothing-store/c84c70ca-f90a-464b-8f31-06d5c1b1e605",
+      "lastmod": "2026-04-14T10:23:33.937+00:00",
+      "priority": 0.7,
+      "changefreq": "weekly"
+    },
+    {
+      "url": "/business-for-sale/real-estate-agency/urbannest-living/2975624d-584e-4b7e-ae89-c4c1c0566362",
+      "lastmod": "2026-05-12T12:03:40.708+00:00",
+      "priority": 0.7,
+      "changefreq": "weekly"
+    },
+    {
+      "url": "/business-for-sale/fitness-wellness/real-estate-brokerage-firm/417ee5d8-6024-4c9f-baa3-b81527934f22",
+      "lastmod": "2026-05-04T09:05:16.564+00:00",
+      "priority": 0.7,
+      "changefreq": "weekly"
+    },
+    {
+      "url": "/business-for-sale/restaurant-caf/pizza-shop/71eba0a9-ff84-4f7f-9889-4d56ee673fe6",
+      "lastmod": "2026-05-12T12:03:54.282+00:00",
+      "priority": 0.7,
+      "changefreq": "weekly"
+    }
+  ],
+  "blogs": [
+    {
+      "url": "/blogs/the-importance-of-healthy-eating-in-daily-life",
+      "lastmod": "2026-05-12T07:12:30.662+00:00",
+      "priority": 0.6,
+      "changefreq": "monthly"
+    },
+    {
+      "url": "/blogs/the-rise-of-remote-work-how-it-s-changing-modern-life",
+      "lastmod": "2026-05-12T07:15:27.819+00:00",
+      "priority": 0.6,
+      "changefreq": "monthly"
+    },
+    {
+      "url": "/blogs/the-impact-of-artificial-intelligence-on-everyday-life",
+      "lastmod": "2026-05-12T07:15:53.838+00:00",
+      "priority": 0.6,
+      "changefreq": "monthly"
+    }
+  ],
+  "timestamp": "2026-05-14T11:42:59.413Z"
+}

@@ -61,7 +61,7 @@ export default function Footer() {
             <Typography variant="body2" sx={{ color: "#9ca3af", mb: 3 }}>
               The trusted marketplace for buying and selling businesses online.
             </Typography>
-            <Box sx={{ display: "flex", gap: 2 }}>
+            {/* <Box sx={{ display: "flex", gap: 2 }}>
               <MuiLink
                 href="#"
                 target="_blank"
@@ -90,7 +90,7 @@ export default function Footer() {
               >
                 <FiInstagram size={20} />
               </MuiLink>
-            </Box>
+            </Box> */}
           </Grid>
 
           {/* Quick Links */}
@@ -110,7 +110,7 @@ export default function Footer() {
                   All Businesses
                 </Typography>
               </Link>
-              <Link href="/sell" style={{ textDecoration: "none" }}>
+              <Link href="#" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
@@ -118,7 +118,7 @@ export default function Footer() {
                   Sell Your Business
                 </Typography>
               </Link>
-              <Link href="/pricing" style={{ textDecoration: "none" }}>
+              <Link href="#" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
@@ -126,7 +126,7 @@ export default function Footer() {
                   Pricing
                 </Typography>
               </Link>
-              <Link href="/faq" style={{ textDecoration: "none" }}>
+              <Link href="#" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
@@ -146,7 +146,7 @@ export default function Footer() {
               Company
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Link href="/about" style={{ textDecoration: "none" }}>
+              <Link href="#" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
@@ -154,7 +154,7 @@ export default function Footer() {
                   About Us
                 </Typography>
               </Link>
-              <Link href="/blog" style={{ textDecoration: "none" }}>
+              <Link href="#" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
@@ -162,7 +162,7 @@ export default function Footer() {
                   Blog
                 </Typography>
               </Link>
-              <Link href="/contact" style={{ textDecoration: "none" }}>
+              <Link href="#" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
@@ -170,7 +170,7 @@ export default function Footer() {
                   Contact
                 </Typography>
               </Link>
-              <Link href="/careers" style={{ textDecoration: "none" }}>
+              <Link href="#" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
@@ -190,7 +190,7 @@ export default function Footer() {
               Legal
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Link href="/privacy" style={{ textDecoration: "none" }}>
+              <Link href="#" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
@@ -198,7 +198,7 @@ export default function Footer() {
                   Privacy Policy
                 </Typography>
               </Link>
-              <Link href="/terms" style={{ textDecoration: "none" }}>
+              <Link href="#" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
@@ -206,7 +206,7 @@ export default function Footer() {
                   Terms of Service
                 </Typography>
               </Link>
-              <Link href="/cookies" style={{ textDecoration: "none" }}>
+              <Link href="#" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}

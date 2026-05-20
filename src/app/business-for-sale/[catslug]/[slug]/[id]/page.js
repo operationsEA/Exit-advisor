@@ -7,8 +7,10 @@ import {
   Chip,
   Divider,
   Avatar,
+  Breadcrumbs,
 } from "@mui/material";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import {
   FiDollarSign,
@@ -39,21 +41,6 @@ const FEATURE_FLAGS = [
   { key: "is_remote", label: "Remote Business", icon: "🌐" },
   { key: "is_featured", label: "Featured", icon: "⭐" },
 ];
-
-export async function generateMetadata(props) {
-  const { id } = await props.params;
-  const result = await getListingDetail(id);
-
-  if (!result.success) {
-    return { title: "Listing Not Found" };
-  }
-
-  const listing = result.data;
-  return {
-    title: listing.title,
-    description: listing.description?.substring(0, 160),
-  };
-}
 
 export default async function ListingDetailPage(props) {
   const { id } = await props.params;
@@ -103,6 +90,80 @@ export default async function ListingDetailPage(props) {
   return (
     <div suppressHydrationWarning>
       <Container maxWidth="lg" sx={{ py: 4 }}>
+        {/* Breadcrumbs */}
+        <Box sx={{ mb: 3 }}>
+          <Breadcrumbs
+            aria-label="breadcrumb"
+            separator={
+              <Typography sx={{ color: "#d1d5db", px: 0.5 }}>/</Typography>
+            }
+            sx={{
+              "& .MuiBreadcrumbs-ol": {
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "wrap",
+                alignItems: "center",
+                listStyle: "none",
+                margin: 0,
+                padding: 0,
+              },
+              "& .MuiBreadcrumbs-li": {
+                display: "flex",
+                alignItems: "center",
+              },
+            }}
+          >
+            <Link href="/" style={{ textDecoration: "none" }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#6b7280",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  "&:hover": { color: "#0884ff", textDecoration: "underline" },
+                }}
+              >
+                Home
+              </Typography>
+            </Link>
+            <Link href="/business-for-sale" style={{ textDecoration: "none" }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#6b7280",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  "&:hover": { color: "#0884ff", textDecoration: "underline" },
+                }}
+              >
+                Businesses For Sale
+              </Typography>
+            </Link>
+            <Link
+              href={`/business-for-sale?category=${encodeURIComponent(listing.business_category)}`}
+              style={{ textDecoration: "none" }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#6b7280",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  "&:hover": { color: "#0884ff", textDecoration: "underline" },
+                }}
+              >
+                {listing.business_category}
+              </Typography>
+            </Link>
+            <Typography
+              variant="body2"
+              sx={{ color: "#0884ff", fontWeight: 600 }}
+            >
+              {listing.title}
+            </Typography>
+          </Breadcrumbs>
+        </Box>
+
         {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Box
@@ -211,14 +272,24 @@ export default async function ListingDetailPage(props) {
             {listing.image_url ? (
               <Paper
                 sx={{
-                  height: 400,
-                  backgroundImage: `url(${listing.image_url})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
+                  height: { xs: 300, md: 400 },
+                  position: "relative",
+                  overflow: "hidden",
                   borderRadius: 2,
                   mb: 3,
                 }}
-              />
+              >
+                <Image
+                  src={listing.image_url}
+                  alt={listing.title}
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 800px"
+                  style={{
+                    objectFit: "cover",
+                  }}
+                />
+              </Paper>
             ) : (
               <Paper
                 sx={{

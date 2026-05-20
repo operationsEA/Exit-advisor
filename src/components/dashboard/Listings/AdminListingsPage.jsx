@@ -218,7 +218,10 @@ export default function AdminListingsPage() {
     <Box sx={{ p: 3 }}>
       {/* Header */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+        <Typography
+          variant="h1"
+          sx={{ fontWeight: 700, mb: 2, fontSize: "2rem" }}
+        >
           📊 All Listings Management
         </Typography>
         <Typography variant="body2" sx={{ color: "#6b7280" }}>
