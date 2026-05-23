@@ -102,7 +102,10 @@ export default function Footer() {
               Browse
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Link href="/browse" style={{ textDecoration: "none" }}>
+              <Link
+                href="/business-for-sale"
+                style={{ textDecoration: "none" }}
+              >
                 <Typography
                   variant="body2"
                   sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
@@ -110,7 +113,7 @@ export default function Footer() {
                   All Businesses
                 </Typography>
               </Link>
-              <Link href="#" style={{ textDecoration: "none" }}>
+              <Link href="/dashboard" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}

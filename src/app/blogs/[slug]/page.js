@@ -12,6 +12,7 @@ import {
   Chip,
 } from "@mui/material";
 import Link from "next/link";
+import Image from "next/image";
 import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
 import {
   getPublishedBlogBySlug,
@@ -32,6 +33,7 @@ export async function generateMetadata(props) {
     return {
       title: "Blog Not Found",
       description: "The blog post you are looking for does not exist.",
+      robots: { index: false, follow: false },
     };
   }
 
@@ -40,6 +42,10 @@ export async function generateMetadata(props) {
   return {
     title: `${blog.title} | Business Selling Blog`,
     description: blog.excerpt || blog.title,
+    robots: { index: true, follow: true },
+    alternates: {
+      canonical: `https://bizforsale.io/blogs/${blog.slug}`,
+    },
     openGraph: {
       title: blog.title,
       description: blog.excerpt,
@@ -91,15 +97,14 @@ export default async function BlogDetailPage(props) {
     description: blog.excerpt,
     image: blog.featured_image_url || "https://bizforsale.io/default-image.jpg",
     datePublished: blog.published_at,
-    dateModified: blog.created_at,
+    dateModified: blog.updated_at,
     author: {
       "@type": "Person",
       name: blog.profiles?.full_name || "Admin",
-      email: blog.profiles?.email,
     },
     publisher: {
       "@type": "Organization",
-      name: "Business Selling Platform",
+      name: "BizForSale.io",
       logo: {
         "@type": "ImageObject",
         url: "https://bizforsale.io/logo.png",
@@ -141,7 +146,7 @@ export default async function BlogDetailPage(props) {
               {/* Header */}
               <Box sx={{ mb: 4 }}>
                 <Typography
-                  variant="h3"
+                  variant="h1"
                   sx={{
                     fontWeight: 800,
                     color: "#0f172a",
@@ -362,11 +367,18 @@ export default async function BlogDetailPage(props) {
                               sx={{
                                 width: "100%",
                                 height: 120,
-                                backgroundImage: `url(${relatedBlog.featured_image_url})`,
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
+                                position: "relative",
+                                overflow: "hidden",
                               }}
-                            />
+                            >
+                              <Image
+                                src={relatedBlog.featured_image_url}
+                                alt={relatedBlog.title}
+                                fill
+                                sizes="(max-width: 900px) 100vw, 300px"
+                                style={{ objectFit: "cover" }}
+                              />
+                            </Box>
                           )}
 
                           <CardContent>

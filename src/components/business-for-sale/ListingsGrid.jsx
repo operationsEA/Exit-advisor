@@ -110,8 +110,48 @@ export default async function ListingsGrid({ searchParams }) {
   const listings = result.data || [];
   const totalPages = result.totalPages || 1;
 
+  const SITE_URL = "https://bizforsale.io";
+
+  const itemListSchema =
+    listings.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "Businesses For Sale",
+          url: `${SITE_URL}/business-for-sale`,
+          numberOfItems: listings.length,
+          itemListElement: listings.map((listing, index) => {
+            const slug = listing.title
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-+|-+$/g, "");
+            const catslug = listing.business_category
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-+|-+$/g, "");
+            return {
+              "@type": "ListItem",
+              position: (page - 1) * 12 + index + 1,
+              url: `${SITE_URL}/business-for-sale/${catslug}/${slug}/${listing.id}`,
+              name: listing.title,
+              description: listing.description
+                ? listing.description.substring(0, 160)
+                : undefined,
+              image: listing.image_url || undefined,
+            };
+          }),
+        }
+      : null;
+
   return (
     <>
+      {itemListSchema && (
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+        />
+      )}
       {/* Active Filters Display */}
       {tag && (
         <Box

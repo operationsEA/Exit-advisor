@@ -36,7 +36,7 @@ export default function HeroSection() {
               Browse Businesses
             </Button>
           </Link>
-          <Link href="/list-your-business" style={{ textDecoration: "none" }}>
+          <Link href="/business-for-sale" style={{ textDecoration: "none" }}>
             <Button
               variant="outlined"
               size="large"
@@ -54,7 +54,7 @@ export default function HeroSection() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 pt-12 border-t border-neutral-200">
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 pt-12 border-t border-neutral-200">
           <div>
             <p className="text-4xl font-bold text-primary-600 mb-2">500+</p>
             <p className="text-neutral-600">Active Listings</p>
@@ -67,7 +67,7 @@ export default function HeroSection() {
             <p className="text-4xl font-bold text-success-600 mb-2">$2.5B+</p>
             <p className="text-neutral-600">Total Deal Value</p>
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   );

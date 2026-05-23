@@ -175,7 +175,7 @@ export default async function ListingDetailPage(props) {
               mb: 2,
             }}
           >
-            <Typography variant="h3" sx={{ fontWeight: 700, color: "#111827" }}>
+            <Typography variant="h1" sx={{ fontWeight: 700, color: "#111827" }}>
               {listing.title}
             </Typography>
             <FavoriteToggleButton
@@ -490,9 +490,7 @@ export default async function ListingDetailPage(props) {
                   <Typography sx={{ fontWeight: 700 }}>
                     {listing.profiles?.full_name || "Unknown Seller"}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: "#6b7280" }}>
-                    {listing.profiles?.email}
-                  </Typography>
+
                   <Box
                     sx={{
                       display: "flex",

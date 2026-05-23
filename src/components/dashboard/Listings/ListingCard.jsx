@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Card,
   CardMedia,
@@ -73,10 +74,21 @@ export default function ListingCard({
   const isBuyer = user && !isAdmin && !isSeller && !isBroker; // Buyer is regular authenticated user
 
   // Conditional rendering flags
-  const canManageListing = (isSeller || isBroker) && isOwner; // Can edit own listing
-  const canViewEditMode = isAdmin || isSeller || isBroker; // Can view listing in edit mode
-  const showMenu = isSeller || isBroker; // Show menu if seller or broker
-  const showFavoriteButton = isBuyer; // Show favorite toggle only to buyers
+  const canManageListing = (isSeller || isBroker) && isOwner;
+  const canViewEditMode = isAdmin || isSeller || isBroker;
+  const showMenu = isSeller || isBroker;
+  const showFavoriteButton = isBuyer;
+
+  // Public listing URL — always computed so crawlers get a real <a> href
+  const listingSlug = listing.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const listingCatSlug = listing.business_category
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const listingHref = `/business-for-sale/${listingCatSlug}/${listingSlug}/${listing.id}`;
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState(false);
@@ -99,24 +111,11 @@ export default function ListingCard({
   const handleMenuClose = () => setAnchorEl(null);
 
   const handleViewClick = () => {
-    // If user is admin/seller/broker, open edit slide
     if (canViewEditMode) {
       setSlideMode("view");
       setSlideOpen(true);
-    } else {
-      // Otherwise, redirect to public listing detail page
-      // Create slug from title
-      const slug = listing.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-
-      const catslug = listing.business_category
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-      router.push(`/business-for-sale/${catslug}/${slug}/${listing.id}`);
     }
+    // buyers are handled by the <Link> component below — no router.push needed
   };
 
   const handleEditClick = () => {
@@ -612,21 +611,40 @@ export default function ListingCard({
             gap: 1,
           }}
         >
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<FiEye size={16} />}
-            onClick={handleViewClick}
-            sx={{
-              flex: 1,
-              textTransform: "none",
-              color: "#0884ff",
-              borderColor: "#0884ff",
-              "&:hover": { borderColor: "#0670d6", color: "#0670d6" },
-            }}
-          >
-            {canViewEditMode ? "View" : "Details"}
-          </Button>
+          {canViewEditMode ? (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<FiEye size={16} />}
+              onClick={handleViewClick}
+              sx={{
+                flex: 1,
+                textTransform: "none",
+                color: "#0884ff",
+                borderColor: "#0884ff",
+                "&:hover": { borderColor: "#0670d6", color: "#0670d6" },
+              }}
+            >
+              View
+            </Button>
+          ) : (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<FiEye size={16} />}
+              component={Link}
+              href={listingHref}
+              sx={{
+                flex: 1,
+                textTransform: "none",
+                color: "#0884ff",
+                borderColor: "#0884ff",
+                "&:hover": { borderColor: "#0670d6", color: "#0670d6" },
+              }}
+            >
+              Details
+            </Button>
+          )}
           {canManageListing && (
             <Button
               size="small"
