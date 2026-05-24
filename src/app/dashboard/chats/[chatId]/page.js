@@ -1,9 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import AdminChatsPage from "../page";
 
-export default function ChatByIdPage() {
+function ChatByIdPageInner() {
   const params = useParams();
   const searchParams = useSearchParams();
 
@@ -15,5 +16,13 @@ export default function ChatByIdPage() {
 
   return (
     <AdminChatsPage initialChatId={chatId} initialPresetMessage={preset} />
+  );
+}
+
+export default function ChatByIdPage() {
+  return (
+    <Suspense>
+      <ChatByIdPageInner />
+    </Suspense>
   );
 }
