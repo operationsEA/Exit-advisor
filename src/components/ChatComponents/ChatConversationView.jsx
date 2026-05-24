@@ -351,7 +351,9 @@ export default function AdminChatConversationView({
           ref={scrollRef}
           sx={{ flex: 1, overflowY: "auto", px: 1, py: 1.25 }}
         >
-          {loading ? (
+          {loading && !messages.length ? (
+            // Full spinner only on first open (no messages to show yet).
+            // With existing messages, LinearProgress at top is sufficient.
             <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
               <CircularProgress size={28} />
             </Box>

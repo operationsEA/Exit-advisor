@@ -78,9 +78,11 @@ export default function AdminChatsPage({
   const [pendingAttachments, setPendingAttachments] = useState([]);
   const [pageError, setPageError] = useState("");
   const [showInfoAlert, setShowInfoAlert] = useState(true);
-  const [hasLoadedChatsOnce, setHasLoadedChatsOnce] = useState(false);
-  const [hasLoadedMessagesOnce, setHasLoadedMessagesOnce] = useState(false);
 
+  // Refs — not state, so flipping them never regenerates callback identities
+  const hasLoadedChatsOnceRef = useRef(false);
+  const hasLoadedMessagesOnceRef = useRef(false);
+  const activeChatRef = useRef(null);
   const initialChatHandledRef = useRef(false);
 
   const role = user?.user_metadata?.role || "buyer";
@@ -102,8 +104,15 @@ export default function AdminChatsPage({
     activeChatId: activeChat?.id || null,
   });
 
+  // Keep activeChatRef in sync so subscription callbacks always see the latest chat
+  // without needing it as a dep (which would cause re-subscription on every fetchChats)
+  useEffect(() => {
+    activeChatRef.current = activeChat;
+  }, [activeChat]);
+
+  // Stable identity: only depends on isAdmin (fixed after login)
   const fetchChats = useCallback(async () => {
-    if (!hasLoadedChatsOnce) {
+    if (!hasLoadedChatsOnceRef.current) {
       setChatsLoading(true);
     }
 
@@ -113,57 +122,53 @@ export default function AdminChatsPage({
       const ordered = sortChats(result.data || []);
       setChats(ordered);
       setPageError("");
-
+      // Refresh the activeChat object from the updated list (e.g. unread count change)
+      // Use prev reference fallback to avoid nulling the chat if list hasn't caught up yet
       setActiveChat((prev) => {
         if (!prev?.id) return prev;
-        return ordered.find((item) => item.id === prev.id) || null;
+        return ordered.find((item) => item.id === prev.id) ?? prev;
       });
-      setMessages((prev) => prev);
     } else if (result?.error) {
       setPageError(result.error);
     }
 
     setChatsLoading(false);
-    if (!hasLoadedChatsOnce) {
-      setHasLoadedChatsOnce(true);
-    }
-  }, [hasLoadedChatsOnce, isAdmin]);
+    hasLoadedChatsOnceRef.current = true;
+  }, [isAdmin]);
 
+  // Stable identity: depends only on fetchChats (stable) and isAdmin
   const loadMessages = useCallback(
     async (chat) => {
       if (!chat?.id) return;
 
-      if (chat.all_messages?.length) {
-        setMessages(dedupeMessages(chat.all_messages));
-      }
-
-      if (!hasLoadedMessagesOnce) {
+      if (!hasLoadedMessagesOnceRef.current) {
         setMessagesLoading(true);
       }
+
       const result = await readMessages(chat.id);
 
       if (result?.success) {
         setMessages(dedupeMessages(result.data || []));
         setPageError("");
-
-        if (!isAdmin && chat.unread_count > 0) {
-          await markAsSeen(chat.id);
-          loadMessages(chat);
+        if (!isAdmin) {
+          // Fire-and-forget: mark seen then refresh unread badges in the list
+          markAsSeen(chat.id).then(fetchChats).catch(console.error);
         }
       } else if (result?.error) {
         setPageError(result.error);
       }
 
       setMessagesLoading(false);
-      if (!hasLoadedMessagesOnce) {
-        setHasLoadedMessagesOnce(true);
-      }
+      hasLoadedMessagesOnceRef.current = true;
     },
-    [hasLoadedMessagesOnce, isAdmin],
+    [fetchChats, isAdmin],
   );
 
   const handleSelectChat = useCallback(
     async (chat) => {
+      // Clear previous chat messages immediately so the new chat starts with a spinner
+      setMessages([]);
+      hasLoadedMessagesOnceRef.current = false;
       setActiveChat(chat);
       setDraft("");
       setPendingAttachments([]);
@@ -228,31 +233,37 @@ export default function AdminChatsPage({
     );
   };
 
+  // Initial fetch + chat list subscription.
+  // fetchChats is stable so this runs once per auth state change.
   useEffect(() => {
     if (!isAuth || !user?.id) return;
 
     fetchChats();
+    // Pass fetchChats directly — no wrapper arrow, avoids creating new fn refs
     const unsubscribe = isAdmin
-      ? subscribeToAdminChats(() => {
-          fetchChats();
-        })
-      : subscribeToUserChats(user.id, () => {
-          fetchChats();
-        });
+      ? subscribeToAdminChats(fetchChats)
+      : subscribeToUserChats(user.id, fetchChats);
 
     return unsubscribe;
   }, [fetchChats, isAdmin, isAuth, user?.id]);
 
+  // Message subscription — keyed on activeChat?.id only (not the full object).
+  // Uses activeChatRef so the callback always sees the latest chat without
+  // tearing down + re-creating the channel on every fetchChats() call.
   useEffect(() => {
-    if (!activeChat?.id || !isAuth) return;
+    const chatId = activeChat?.id;
+    if (!chatId || !isAuth) return;
 
-    const unsubscribe = subscribeToChatMessages(activeChat.id, async () => {
-      await loadMessages(activeChat);
+    const unsubscribe = subscribeToChatMessages(chatId, async () => {
+      const current = activeChatRef.current;
+      if (current?.id === chatId) {
+        await loadMessages(current);
+      }
       fetchChats();
     });
 
     return unsubscribe;
-  }, [activeChat, fetchChats, isAuth, loadMessages]);
+  }, [activeChat?.id, fetchChats, isAuth, loadMessages]);
 
   useEffect(() => {
     if (!initialChatId) {
