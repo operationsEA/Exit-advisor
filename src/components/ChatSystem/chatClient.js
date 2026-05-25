@@ -2,7 +2,10 @@
 
 import { createBrowserSupabaseClient } from "@/supabase/client";
 import { createFcmPushPayload } from "../../../firebase/messaging";
-import { sendFcmNotification } from "@/components/ChatSystem/actions";
+import {
+  sendFcmNotification,
+  queueEmailNotification,
+} from "@/components/ChatSystem/actions";
 
 let browserSupabase;
 
@@ -545,6 +548,13 @@ export async function sendMessage({
     console.warn("Push notification dispatch failed:", pushError);
   });
 
+  // Fire-and-forget: queue an email if recipient is away for 5+ minutes
+  queueEmailNotification({
+    chatId,
+    senderId: auth.user.id,
+    messageId: data.id,
+  }).catch(() => {});
+
   return { success: true, data };
 }
 
@@ -682,6 +692,13 @@ export async function sendAdminMessage({
   }).catch((pushError) => {
     console.warn("Push notification dispatch failed:", pushError);
   });
+
+  // Fire-and-forget: queue an email if recipient is away for 5+ minutes
+  queueEmailNotification({
+    chatId,
+    senderId: auth.user.id,
+    messageId: data.id,
+  }).catch(() => {});
 
   return { success: true, data };
 }

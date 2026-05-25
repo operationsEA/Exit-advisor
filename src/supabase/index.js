@@ -21,6 +21,19 @@ export function createPublicSupabaseClient() {
   );
 }
 
+/**
+ * Creates a Supabase client with the service-role key.
+ * Bypasses RLS — use ONLY in server-side code (Server Actions, API routes).
+ * Never expose SUPABASE_SERVICE_ROLE_KEY to the browser.
+ */
+export function createAdminSupabaseClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    { auth: { persistSession: false } },
+  );
+}
+
 // Export SSR clients and helpers for structured imports
 export { createServerSupabaseClient } from "./server";
 export { createBrowserSupabaseClient } from "./client";

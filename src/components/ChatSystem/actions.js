@@ -3,6 +3,7 @@
 import admin from "firebase-admin";
 
 import { createServerSupabaseClient } from "@/supabase/server";
+import { createAdminSupabaseClient } from "@/supabase/index";
 
 async function getAuthenticatedUser(supabase) {
   const {
@@ -533,7 +534,10 @@ function getFirebaseAdmin() {
     return admin.app();
   }
 
-  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(
+    /\\n/g,
+    "\n",
+  );
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
   const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
 
@@ -579,5 +583,79 @@ export async function sendFcmNotification({ token, payload } = {}) {
     }
 
     return { success: false, error: error.message || "Unknown error" };
+  }
+}
+
+/**
+ * Queue an email notification for the message recipient if they are not
+ * currently active in the chat. Called fire-and-forget from sendMessage /
+ * sendAdminMessage so it never blocks the sender's UI.
+ *
+ * The Postgres trigger (trg_queue_chat_email) also handles this for direct DB
+ * inserts, so this call is an additional safety net from the app layer.
+ */
+export async function queueEmailNotification({
+  chatId,
+  senderId,
+  messageId,
+} = {}) {
+  if (!chatId || !senderId || !messageId) return { success: false };
+
+  try {
+    const supabase = createAdminSupabaseClient();
+
+    // Resolve the chat so we can find the recipient
+    const { data: chat, error: chatError } = await supabase
+      .from("chat")
+      .select("buyer_id, seller_id")
+      .eq("id", chatId)
+      .maybeSingle();
+
+    if (chatError || !chat) return { success: false };
+
+    const recipientId =
+      senderId === chat.buyer_id ? chat.seller_id : chat.buyer_id;
+
+    // Check whether the recipient is actively viewing this exact chat right now
+    const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000).toISOString();
+    const { data: activity } = await supabase
+      .from("active_chats")
+      .select("is_active, updated_at")
+      .eq("user_id", recipientId)
+      .eq("chat_id", chatId)
+      .eq("is_active", true)
+      .gte("updated_at", threeMinutesAgo)
+      .maybeSingle();
+
+    if (activity?.is_active) {
+      // Recipient is online in this chat — no email needed
+      return { success: true, skipped: true };
+    }
+
+    // Schedule the notification. The partial unique index on
+    // (recipient_id, chat_id) WHERE sent=false prevents duplicates —
+    // we just ignore the 23505 duplicate-key error if one already exists.
+    const sendAfter = new Date(Date.now() + 2 * 60 * 1000).toISOString();
+    const { error: insertError } = await supabase
+      .from("pending_email_notifications")
+      .insert({
+        recipient_id: recipientId,
+        chat_id: chatId,
+        message_id: messageId,
+        send_after: sendAfter,
+      });
+
+    // 23505 = unique_violation — means an unsent notification already exists, which is fine
+    if (insertError && insertError.code !== "23505") {
+      console.warn(
+        "[queueEmailNotification] insert error:",
+        insertError.message,
+      );
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.warn("[queueEmailNotification] unexpected error:", err);
+    return { success: false };
   }
 }
