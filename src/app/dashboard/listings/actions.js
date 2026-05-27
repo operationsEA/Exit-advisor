@@ -1,5 +1,6 @@
 "use server";
 
+import * as XLSX from "xlsx";
 import { createServerSupabaseClient } from "@/supabase";
 
 export async function createListing(formData) {
@@ -712,5 +713,344 @@ export async function getBuyerFavoriteListings() {
   } catch (error) {
     console.error("Error in getBuyerFavoriteListings:", error);
     return { error: error.message || "Failed to fetch favorite listings" };
+  }
+}
+const BULK_VALID_CATEGORIES = [
+  "Retail Store",
+  "Restaurant & Café",
+  "Technology Startup",
+  "Consulting Firm",
+  "E-commerce Business",
+  "Fitness & Wellness",
+  "Real Estate Agency",
+  "Marketing Agency",
+  "Manufacturing",
+  "Professional Services",
+];
+
+const BULK_VALID_STATUSES = ["draft", "available", "loi", "sold"];
+const BULK_VALID_CURRENCIES = [
+  "USD",
+  "EUR",
+  "GBP",
+  "AED",
+  "SAR",
+  "INR",
+  "CAD",
+  "AUD",
+  "JPY",
+  "SGD",
+];
+
+export async function bulkUploadListings(formData) {
+  try {
+    const supabase = await createServerSupabaseClient();
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) return { error: "Not authenticated" };
+
+    const role = user.user_metadata?.role;
+    if (!["broker", "admin"].includes(role)) {
+      return { error: "Only brokers and admins can use bulk upload" };
+    }
+
+    const file = formData.get("file");
+    if (!file || typeof file === "string") return { error: "No file provided" };
+
+    const fileName = file.name || "";
+    const ext = fileName.split(".").pop()?.toLowerCase();
+    if (!["xlsx", "xls"].includes(ext)) {
+      return {
+        error: "Invalid file type. Please upload an .xlsx or .xls file",
+      };
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      return { error: "File too large. Maximum file size is 5MB" };
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const workbook = XLSX.read(buffer, { type: "buffer" });
+
+    const sheetName = workbook.SheetNames[0];
+    if (!sheetName) return { error: "Excel file has no sheets" };
+
+    const worksheet = workbook.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(worksheet, {
+      header: 1,
+      raw: false,
+      defval: "",
+    });
+
+    if (rows.length < 2) {
+      return { error: "File is empty or contains only a header row" };
+    }
+
+    const rawHeaders = rows[0];
+    const headers = rawHeaders.map((h) =>
+      String(h).trim().toLowerCase().replace(/\s+/g, "_"),
+    );
+
+    const dataRows = rows
+      .slice(1)
+      .filter(
+        (row) => Array.isArray(row) && row.some((c) => String(c).trim() !== ""),
+      );
+
+    if (dataRows.length === 0) {
+      return { error: "No data rows found in the file" };
+    }
+    if (dataRows.length > 100) {
+      return {
+        error: `Too many rows (${dataRows.length}). Maximum 100 listings per upload`,
+      };
+    }
+
+    const findCol = (...names) => {
+      for (const name of names) {
+        const idx = headers.indexOf(name.toLowerCase().replace(/\s+/g, "_"));
+        if (idx >= 0) return idx;
+      }
+      return -1;
+    };
+
+    const colMap = {
+      title: findCol("title"),
+      description: findCol("description"),
+      business_category: findCol(
+        "category",
+        "business_category",
+        "business_category",
+      ),
+      status: findCol("status"),
+      currency: findCol("currency"),
+      min_price: findCol("price", "min_price", "asking_price"),
+      min_revenue: findCol("revenue", "min_revenue", "annual_revenue"),
+      min_cashflow: findCol("cashflow", "cash_flow", "min_cashflow"),
+      no_of_employees: findCol(
+        "employees",
+        "no_of_employees",
+        "number_of_employees",
+      ),
+      reference_no: findCol("reference_no", "ref_no", "ref"),
+      country: findCol("country"),
+      state: findCol("state"),
+      is_sba_approved: findCol("sba_approved", "is_sba_approved", "sba"),
+      has_seller_financing: findCol(
+        "seller_financing",
+        "has_seller_financing",
+        "financing",
+      ),
+      is_distressed: findCol("distressed", "is_distressed"),
+      is_remote: findCol("remote", "is_remote"),
+      tags: findCol("tags"),
+      links: findCol("links"),
+    };
+
+    const results = [];
+    const toInsert = [];
+
+    for (let i = 0; i < dataRows.length; i++) {
+      const row = dataRows[i];
+      const rowNum = i + 2;
+      const errors = [];
+
+      const get = (key) => {
+        const idx = colMap[key];
+        return idx >= 0 ? String(row[idx] ?? "").trim() : "";
+      };
+
+      const getBool = (key) => {
+        const val = get(key).toLowerCase();
+        return ["true", "yes", "1", "y"].includes(val);
+      };
+
+      const getNum = (key) => {
+        const val = get(key).replace(/,/g, "").trim();
+        if (!val) return null;
+        const n = parseFloat(val);
+        return isNaN(n) ? null : n;
+      };
+
+      const title = get("title");
+      const description = get("description");
+      const category = get("business_category");
+      const country = get("country");
+      const status = (get("status") || "draft").toLowerCase();
+      const currency = (get("currency") || "USD").toUpperCase();
+      const refNo = get("reference_no");
+
+      if (!title) {
+        errors.push("Title is required");
+      } else if (title.length < 5) {
+        errors.push("Title must be at least 5 characters");
+      } else if (title.length > 80) {
+        errors.push("Title must not exceed 80 characters");
+      }
+
+      if (!description) {
+        errors.push("Description is required");
+      } else if (description.length < 500) {
+        errors.push(
+          `Description too short (${description.length} chars, minimum 500 required)`,
+        );
+      } else if (description.length > 5000) {
+        errors.push("Description too long (max 5000 chars)");
+      }
+
+      if (!category) {
+        errors.push("Category is required");
+      } else if (!BULK_VALID_CATEGORIES.includes(category)) {
+        errors.push(
+          `Invalid category: "${category}". Valid values: ${BULK_VALID_CATEGORIES.join(", ")}`,
+        );
+      }
+
+      if (!country) errors.push("Country is required");
+
+      if (!BULK_VALID_STATUSES.includes(status)) {
+        errors.push(
+          `Invalid status "${status}". Use: draft, available, loi, sold`,
+        );
+      }
+
+      if (!BULK_VALID_CURRENCIES.includes(currency)) {
+        errors.push(
+          `Invalid currency "${currency}". Use: ${BULK_VALID_CURRENCIES.join(", ")}`,
+        );
+      }
+
+      if (refNo && refNo.length > 6) {
+        errors.push("Reference No must be max 6 characters");
+      }
+
+      const tagsRaw = get("tags");
+      const tags = tagsRaw
+        ? tagsRaw
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : [];
+      if (tags.length > 8) errors.push("Maximum 8 tags allowed");
+
+      const linksRaw = get("links");
+      const links = [];
+      if (linksRaw) {
+        for (const pair of linksRaw.split(",")) {
+          const [text, link] = pair.split("|").map((s) => s?.trim());
+          if (text && link) {
+            try {
+              new URL(link);
+              links.push({ text, link });
+            } catch {
+              errors.push(`Invalid URL in links column: "${link}"`);
+            }
+          }
+        }
+        if (links.length > 10) errors.push("Maximum 10 links allowed");
+      }
+
+      if (errors.length > 0) {
+        results.push({
+          row: rowNum,
+          title: title || "(empty)",
+          status: "error",
+          errors,
+        });
+        continue;
+      }
+
+      const noOfEmp = getNum("no_of_employees");
+
+      toInsert.push({
+        rowNum,
+        title,
+        listing: {
+          user_id: user.id,
+          title,
+          description,
+          business_category: category,
+          status,
+          currency,
+          min_price: getNum("min_price"),
+          max_price: null,
+          min_revenue: getNum("min_revenue"),
+          max_revenue: null,
+          min_cashflow: getNum("min_cashflow"),
+          max_cashflow: null,
+          no_of_employees: noOfEmp !== null ? Math.round(noOfEmp) : null,
+          reference_no: refNo || null,
+          country,
+          state: get("state") || null,
+          is_sba_approved: getBool("is_sba_approved"),
+          has_seller_financing: getBool("has_seller_financing"),
+          is_distressed: getBool("is_distressed"),
+          is_remote: getBool("is_remote"),
+          is_featured: false,
+          tags: tags.length > 0 ? tags : null,
+          links: links.length > 0 ? links : null,
+        },
+      });
+    }
+
+    if (toInsert.length > 0) {
+      const { data: inserted, error: batchError } = await supabase
+        .from("listings")
+        .insert(toInsert.map((r) => r.listing))
+        .select("id, title");
+
+      if (!batchError && inserted) {
+        for (let i = 0; i < toInsert.length; i++) {
+          results.push({
+            row: toInsert[i].rowNum,
+            title: toInsert[i].title,
+            status: "success",
+            id: inserted[i]?.id,
+          });
+        }
+      } else {
+        // Batch failed — fall back to individual inserts for granular error reporting
+        for (const item of toInsert) {
+          const { data, error } = await supabase
+            .from("listings")
+            .insert(item.listing)
+            .select("id")
+            .single();
+
+          if (error) {
+            results.push({
+              row: item.rowNum,
+              title: item.title,
+              status: "error",
+              errors: [error.message],
+            });
+          } else {
+            results.push({
+              row: item.rowNum,
+              title: item.title,
+              status: "success",
+              id: data.id,
+            });
+          }
+        }
+      }
+    }
+
+    results.sort((a, b) => a.row - b.row);
+
+    const succeeded = results.filter((r) => r.status === "success").length;
+    const failed = results.filter((r) => r.status === "error").length;
+
+    return {
+      success: true,
+      results,
+      summary: { total: dataRows.length, succeeded, failed },
+    };
+  } catch (error) {
+    console.error("Bulk upload error:", error);
+    return { error: error.message || "Bulk upload failed" };
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import AdminListingsPage from "@/components/dashboard/Listings/AdminListingsPage";
+import BrokerListingPage from "@/components/dashboard/Listings/BrokerListingPage";
 import BuyerListingPage from "@/components/dashboard/Listings/BuyerListingPage";
 import SellerListingPage from "@/components/dashboard/Listings/SellerListingPage";
 import Loading from "@/components/Shared/Loading";
@@ -15,7 +16,11 @@ export default function ListingsPage() {
     return <Loading />;
   }
 
-  if (["seller", "broker"].includes(role)) {
+  if (role === "broker") {
+    return <BrokerListingPage />;
+  }
+
+  if (role === "seller") {
     return <SellerListingPage />;
   }
 
