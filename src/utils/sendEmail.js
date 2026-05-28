@@ -94,7 +94,7 @@ function getTransporter(profileKey) {
  * @param {"helo"|"mail"} transport  SMTP profile to use (default: "helo")
  * @returns {Promise<{ success: true, messageId: string } | { success: false, error: string }>}
  */
-export async function sendEmail(options, transport = "helo") {
+export async function sendEmail(options, transport = "mail") {
   const { to, subject, html, text, from } = options;
 
   if (!to || !subject || (!html && !text)) {
