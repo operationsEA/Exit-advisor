@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
 import { createAdminSupabaseClient } from "@/supabase/index";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail } from "@/utils/sendEmail";
 
 // Vercel Cron calls this route every minute (configured in vercel.json).
 // It processes all due pending_email_notifications, re-verifies the recipient
@@ -103,32 +101,22 @@ export async function GET(request) {
     );
 
     try {
-      // Resend test-mode constraints (no verified domain):
-      //   • from  must be "onboarding@resend.dev"
-      //   • to    must be your Resend account email
-      // Set RESEND_TEST_TO in .env.local to your Resend account email while testing.
-      // Once you verify a domain, remove both overrides and use the real values.
-      const isTestMode =
-        !process.env.EMAIL_FROM_DOMAIN || !!process.env.RESEND_TEST_TO;
-      const fromAddress = isTestMode
-        ? "onboarding@resend.dev"
-        : `BizForSale <notifications@${process.env.EMAIL_FROM_DOMAIN}>`;
-      const toAddress = isTestMode
-        ? ["bilalashraf6233@gmail.com"]
-        : [recipientEmail];
+      const result = await sendEmail(
+        {
+          to: recipientEmail,
+          subject: `New message from ${senderName} about "${listingTitle}"`,
+          html: buildEmailHtml({
+            recipientName,
+            senderName,
+            listingTitle,
+            messagePreview,
+            chatUrl,
+          }),
+        },
+        "mail", // use "helo" for the helo SMTP profile
+      );
 
-      await resend.emails.send({
-        from: fromAddress,
-        to: toAddress,
-        subject: `New message from ${senderName} about "${listingTitle}"`,
-        html: buildEmailHtml({
-          recipientName,
-          senderName,
-          listingTitle,
-          messagePreview,
-          chatUrl,
-        }),
-      });
+      if (!result.success) throw new Error(result.error);
 
       processedIds.push(notif.id);
       sent++;
