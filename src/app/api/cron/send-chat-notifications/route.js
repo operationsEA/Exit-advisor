@@ -39,8 +39,6 @@ export async function GET(request) {
     .eq("sent", false)
     .lte("send_after", now);
 
-  console.log({ notifications: JSON.stringify(notifications, null, 2) });
-
   if (fetchError) {
     console.error("[cron/send-chat-notifications] fetch error:", fetchError);
     return NextResponse.json({ error: fetchError.message }, { status: 500 });

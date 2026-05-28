@@ -2,6 +2,7 @@ import { AppBar, Toolbar, Box } from "@mui/material";
 import Link from "next/link";
 import Image from "next/image";
 import NavbarAuth from "./NavbarAuth";
+import MobileNavbarAuth from "./MobileNavbarAuth";
 
 // Static links always visible to all users (crawlers see these immediately)
 const staticLinks = [
@@ -21,10 +22,7 @@ export default function Navbar() {
     >
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          px: 4,
+          px: { xs: 2, sm: 4 },
           mx: "auto",
           width: "100%",
         }}
@@ -33,8 +31,10 @@ export default function Navbar() {
           sx={{
             display: "flex",
             justifyContent: "space-between",
+            alignItems: "center",
             px: 0,
             width: "100%",
+            minHeight: { xs: 56, sm: 64 },
           }}
         >
           {/* Logo — server-rendered, indexable */}
@@ -57,9 +57,14 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* Navigation */}
-          <Box sx={{ display: "flex", gap: 3, alignItems: "center" }}>
-            {/* Static public links — server-rendered for crawlers */}
+          {/* Desktop navigation (md and above) */}
+          <Box
+            sx={{
+              display: { xs: "none", md: "flex" },
+              gap: 3,
+              alignItems: "center",
+            }}
+          >
             {staticLinks.map((link) => (
               <Link
                 key={link.href}
@@ -69,9 +74,14 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-
-            {/* Auth-dependent section — client component */}
             <NavbarAuth />
+          </Box>
+
+          {/* Mobile hamburger (below md) */}
+          <Box
+            sx={{ display: { xs: "flex", md: "none" }, alignItems: "center" }}
+          >
+            <MobileNavbarAuth staticLinks={staticLinks} />
           </Box>
         </Toolbar>
       </Box>
