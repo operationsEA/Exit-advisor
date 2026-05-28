@@ -44,7 +44,7 @@ export default function Sidebar() {
   const menuItems = [
     { icon: FiHome, label: "Dashboard", href: "/dashboard" },
     { icon: FiBriefcase, label: "Listings", href: "/dashboard/listings" },
-    { icon: FiUser, label: "Profile", href: "/dashboard/profile" },
+    // { icon: FiUser, label: "Profile", href: "/dashboard/profile" },
     ...(user
       ? [{ icon: FiMessageSquare, label: "Chats", href: "/dashboard/chats" }]
       : []),
