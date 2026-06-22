@@ -11,6 +11,6 @@ export function formatListingId(id) {
   const last = parts[parts.length - 1];
   return {
     original: id,
-    formatted: `BIZ-${last}`,
+    formatted: `BIZ-${last.substring(last.length - 4, 4)}`,
   };
 }

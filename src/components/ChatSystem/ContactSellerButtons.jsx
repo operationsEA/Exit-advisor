@@ -10,7 +10,6 @@ export default function ContactSellerButtons({ listing, seller }) {
   const router = useRouter();
   const { isAuth, isLoading } = useAuth();
   const [opening, setOpening] = useState(false);
-
   const openChatInDashboard = async (presetMessage = "") => {
     if (isLoading || opening) return;
 
@@ -55,23 +54,21 @@ export default function ContactSellerButtons({ listing, seller }) {
       >
         Contact Seller
       </Button>
-      <Button
-        fullWidth
-        variant="outlined"
-        disabled={opening || isLoading}
-        onClick={() =>
-          openChatInDashboard(
-            `Hi, I would like more information about ${listing?.title || "this listing"}.`,
-          )
-        }
-        sx={{
-          borderColor: "#0884ff",
-          color: "#0884ff",
-          textTransform: "none",
-        }}
-      >
-        Request More Info
-      </Button>
+      {listing?.link && (
+        <Button
+          fullWidth
+          variant="outlined"
+          disabled={opening || isLoading}
+          onClick={() => window.open(listing.link, "_blank")}
+          sx={{
+            borderColor: "#0884ff",
+            color: "#0884ff",
+            textTransform: "none",
+          }}
+        >
+          Request More Info
+        </Button>
+      )}
     </Box>
   );
 }

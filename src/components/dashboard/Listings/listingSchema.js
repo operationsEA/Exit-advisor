@@ -127,6 +127,7 @@ export const listingEditSchema = yup.object().shape({
 export const BUSINESS_CATEGORIES = [
   "Retail Store",
   "Restaurant & Café",
+  "SaaS & Software",
   "Technology Startup",
   "Consulting Firm",
   "E-commerce Business",

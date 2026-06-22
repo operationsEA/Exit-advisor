@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import {
   Avatar,
@@ -218,6 +219,19 @@ export default function AdminChatConversationView({
     chat?.buyer_id === currentUserId ? chat?.seller : chat?.buyer;
   const isAdminView = viewerRole === "admin";
 
+  // Listing detail link
+  const listingSlug = chat?.listing?.title
+    ?.toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const listingCatSlug = chat?.listing?.business_category
+    ?.toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const listingHref = chat?.listing?.id
+    ? `/business-for-sale/${listingCatSlug}/${listingSlug}/${chat.listing.id}`
+    : null;
+
   async function downloadFile(url, fileName) {
     try {
       const res = await fetch(url);
@@ -320,18 +334,54 @@ export default function AdminChatConversationView({
           </Avatar>
 
           <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
-              {isAdminView
-                ? chat?.listing?.title || "Conversation"
-                : otherUser?.full_name || "Conversation"}
-            </Typography>
+            {isAdminView && listingHref ? (
+              <Link
+                href={listingHref}
+                style={{
+                  textDecoration: "none",
+                  color: "inherit",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontWeight: 700,
+                    color: "#0f172a",
+                    "&:hover": { color: "#0884ff" },
+                  }}
+                >
+                  {chat?.listing?.title || "Conversation"}
+                </Typography>
+              </Link>
+            ) : (
+              <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
+                {isAdminView
+                  ? chat?.listing?.title || "Conversation"
+                  : otherUser?.full_name || "Conversation"}
+              </Typography>
+            )}
             <Typography
               variant="caption"
-              sx={{ color: "#64748b", display: "block", lineHeight: 1.2 }}
+              sx={{
+                color: "#64748b",
+                display: "block",
+                lineHeight: 1.2,
+              }}
             >
-              {isAdminView
-                ? `Buyer: ${chat?.buyer?.full_name || "Unknown"} | Seller: ${chat?.seller?.full_name || "Unknown"}`
-                : chat?.listing?.title || "Listing conversation"}
+              {isAdminView ? (
+                `Buyer: ${chat?.buyer?.full_name || "Unknown"} | Seller: ${chat?.seller?.full_name || "Unknown"}`
+              ) : listingHref ? (
+                <Link
+                  href={listingHref}
+                  style={{
+                    textDecoration: "none",
+                    color: "#0884ff",
+                  }}
+                >
+                  {chat?.listing?.title || "Listing conversation"}
+                </Link>
+              ) : (
+                chat?.listing?.title || "Listing conversation"
+              )}
             </Typography>
           </Box>
 

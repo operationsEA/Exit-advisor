@@ -309,14 +309,6 @@ export default async function ListingDetailPage(props) {
               </Paper>
             )}
 
-            {/* Description */}
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                Business Description
-              </Typography>
-              <DescriptionToggle description={listing.description} />
-            </Paper>
-
             {/* Key Metrics */}
             <Paper sx={{ p: 3, mb: 3 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
@@ -424,6 +416,14 @@ export default async function ListingDetailPage(props) {
               </Grid>
             </Paper>
 
+            {/* Description */}
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                Business Description
+              </Typography>
+              <DescriptionToggle description={listing.description} />
+            </Paper>
+
             {/* Special Features */}
             <Paper sx={{ p: 3, mb: 3 }}>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
@@ -520,6 +520,7 @@ export default async function ListingDetailPage(props) {
                   title: listing.title,
                   business_category: listing.business_category,
                   image_url: listing.image_url,
+                  link: listing.links?.[0]?.link || null,
                 }}
                 seller={{
                   id: listing.profiles?.id,

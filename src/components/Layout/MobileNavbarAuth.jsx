@@ -106,6 +106,7 @@ export default function MobileNavbarAuth({ staticLinks }) {
               }}
             >
               <Avatar
+                src={user?.user_metadata?.avatar_url || undefined}
                 sx={{
                   bgcolor: "#0884ff",
                   width: 40,

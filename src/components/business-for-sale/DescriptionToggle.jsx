@@ -5,7 +5,7 @@ import { Typography, Button, Box } from "@mui/material";
 
 export default function DescriptionToggle({ description }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const maxChars = 400;
+  const maxChars = 800;
   const isTruncated = description.length > maxChars;
   const displayText = isExpanded
     ? description

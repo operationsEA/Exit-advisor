@@ -10,6 +10,7 @@ export const PRICE_PRESETS = [
   { label: "$10M - $20M", min: 10000000, max: 20000000 },
   { label: "$20M - $35M", min: 20000000, max: 35000000 },
   { label: "$35M - $50M", min: 35000000, max: 50000000 },
+  { label: "$50M+", min: 50000000, max: 100000000 },
 ];
 
 export const REVENUE_PRESETS = [

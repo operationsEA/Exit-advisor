@@ -31,7 +31,6 @@ import {
   FiTrendingUp,
   FiMapPin,
 } from "react-icons/fi";
-import { MdBrokenImage } from "react-icons/md";
 import { useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -259,6 +258,15 @@ export default function ListingCard({
             transform: "translateY(-4px)",
           },
         }}
+        onClick={() => {
+          if (canViewEditMode) {
+            setSlideMode("view");
+            setSlideOpen(true);
+          } else {
+            // navigate to detail page
+            router.push(listingHref);
+          }
+        }}
       >
         {/* Image Section */}
         <Box sx={{ position: "relative", overflow: "hidden", height: 200 }}>
@@ -275,45 +283,44 @@ export default function ListingCard({
               priority={false}
             />
           ) : (
-            <Box
-              sx={{
-                height: "100%",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 1.5,
-                px: 2,
-              }}
-            >
-              <MdBrokenImage size={56} color="rgba(255, 255, 255, 0.75)" />
-              {canManageListing ? (
-                <Button
-                  size="small"
-                  variant="contained"
-                  startIcon={<FiUploadCloud size={16} />}
-                  onClick={handleUploadImageClick}
-                  disabled={isUploadingImage}
+            <Box sx={{ position: "relative", width: "100%", height: "100%" }}>
+              <Image
+                src="/listing-card-default-image.png"
+                alt="Default listing image"
+                fill
+                sizes="(max-width: 640px) 90vw, (max-width: 1024px) 50vw, 30vw"
+                style={{ objectFit: "cover", objectPosition: "center" }}
+                priority={false}
+              />
+              {canManageListing && (
+                <Box
                   sx={{
-                    textTransform: "none",
-                    borderRadius: 8,
-                    backgroundColor: "rgba(255,255,255,0.18)",
-                    border: "1px solid rgba(255,255,255,0.38)",
-                    color: "#ffffff",
-                    backdropFilter: "blur(4px)",
-                    "&:hover": { backgroundColor: "rgba(255,255,255,0.28)" },
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  {isUploadingImage ? "Uploading..." : "Upload Cover Image"}
-                </Button>
-              ) : (
-                <Typography
-                  variant="caption"
-                  sx={{ color: "rgba(255,255,255,0.92)" }}
-                >
-                  No Image Available
-                </Typography>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    startIcon={<FiUploadCloud size={16} />}
+                    onClick={handleUploadImageClick}
+                    disabled={isUploadingImage}
+                    sx={{
+                      textTransform: "none",
+                      borderRadius: 8,
+                      backgroundColor: "rgba(0,0,0,0.55)",
+                      border: "1px solid rgba(255,255,255,0.38)",
+                      color: "#ffffff",
+                      backdropFilter: "blur(4px)",
+                      "&:hover": { backgroundColor: "rgba(0,0,0,0.7)" },
+                    }}
+                  >
+                    {isUploadingImage ? "Uploading..." : "Upload Cover Image"}
+                  </Button>
+                </Box>
               )}
             </Box>
           )}
@@ -672,10 +679,6 @@ export default function ListingCard({
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
         >
-          <MenuItem>
-            <FiEdit2 size={16} style={{ marginRight: 8 }} />
-            Edit
-          </MenuItem>
           <MenuItem onClick={handleDeleteClick}>
             <FiTrash2 size={16} style={{ marginRight: 8, color: "#ef4444" }} />
             <span style={{ color: "#ef4444" }}>Delete</span>

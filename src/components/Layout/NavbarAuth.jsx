@@ -134,6 +134,7 @@ export default function NavbarAuth() {
         }}
       >
         <Avatar
+          src={user?.user_metadata?.avatar_url || undefined}
           sx={{
             bgcolor: "#0884ff",
             width: 40,

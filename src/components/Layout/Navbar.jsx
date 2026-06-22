@@ -7,7 +7,7 @@ import MobileNavbarAuth from "./MobileNavbarAuth";
 // Static links always visible to all users (crawlers see these immediately)
 const staticLinks = [
   { label: "Browse", href: "/business-for-sale" },
-  { label: "Blogs", href: "/blogs" },
+  { label: "Acquisition Education", href: "/blogs" },
 ];
 
 export default function Navbar() {

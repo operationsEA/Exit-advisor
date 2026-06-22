@@ -133,21 +133,25 @@ export default function RangeFilterPopover({
 
         <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
           <TextField
-            type="number"
+            type="text"
             label="Min"
             size="small"
-            value={draftMin}
-            onChange={(event) => setDraftMin(event.target.value)}
-            inputProps={{ min: minLimit, max: maxLimit, step }}
+            value={Number(draftMin).toLocaleString("en-US")}
+            onChange={(event) => {
+              const raw = event.target.value.replace(/[^0-9]/g, "");
+              setDraftMin(raw === "" ? "" : Number(raw));
+            }}
             fullWidth
           />
           <TextField
-            type="number"
+            type="text"
             label="Max"
             size="small"
-            value={draftMax}
-            onChange={(event) => setDraftMax(event.target.value)}
-            inputProps={{ min: minLimit, max: maxLimit, step }}
+            value={Number(draftMax).toLocaleString("en-US")}
+            onChange={(event) => {
+              const raw = event.target.value.replace(/[^0-9]/g, "");
+              setDraftMax(raw === "" ? "" : Number(raw));
+            }}
             fullWidth
           />
         </Stack>

@@ -352,10 +352,7 @@ export default function AdminChatsPage({
           <Typography
             sx={{ fontWeight: 700, color: "#0f172a", lineHeight: 1.2 }}
           >
-            Chat Notifications
-          </Typography>
-          <Typography variant="caption" sx={{ color: "#64748b" }}>
-            {pushStatusText}
+            Email Chat Notifications
           </Typography>
         </Box>
 
@@ -380,11 +377,7 @@ export default function AdminChatsPage({
       )}
 
       {showInfoAlert && (
-        <Alert
-          severity="info"
-          onClose={() => setShowInfoAlert(false)}
-          sx={{ mb: 1.5 }}
-        >
+        <Alert severity="info" sx={{ mb: 1.5 }}>
           Information shared through this platform should be independently
           verified by all parties before proceeding with any transaction
         </Alert>

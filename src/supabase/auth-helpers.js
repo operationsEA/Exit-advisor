@@ -59,6 +59,7 @@ export const getUserProfile = async (supabase, userId) => {
 
 export const updateUserProfile = async (supabase, userId, updates) => {
   try {
+    console.log({ updates });
     const { data, error } = await supabase
       .from("profiles")
       .update(updates)
@@ -67,6 +68,16 @@ export const updateUserProfile = async (supabase, userId, updates) => {
 
     if (error) {
       return { success: false, error: error.message };
+    }
+
+    // Sync relevant fields to auth metadata
+    const authMetadata = {};
+    if (updates.full_name) authMetadata.full_name = updates.full_name;
+    if (updates.role) authMetadata.role = updates.role;
+    if (updates.avatar_url) authMetadata.avatar_url = updates.avatar_url;
+
+    if (Object.keys(authMetadata).length > 0) {
+      await supabase.auth.updateUser({ data: authMetadata });
     }
 
     return { success: true, user: data?.[0] };
