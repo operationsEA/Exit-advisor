@@ -24,7 +24,8 @@ const authButtons = [
 
 const menuItems = [
   { label: "Dashboard", href: "/dashboard", icon: FiBriefcase },
-  //   { label: "Profile", href: "/dashboard/profile", icon: FiUser },
+  { label: "My Listings", href: "/dashboard/listings", icon: FiBriefcase },
+  { label: "Profile", href: "/dashboard/profile", icon: FiUser },
 ];
 
 export default function NavbarAuth() {
@@ -82,16 +83,26 @@ export default function NavbarAuth() {
             <Button
               variant={btn.variant}
               sx={{
-                color: btn.variant === "text" ? "#0884ff" : "white",
+                color: btn.variant === "text" ? "#D4A537" : "#0A0F1C",
                 backgroundColor:
-                  btn.variant === "contained" ? "#0884ff" : "transparent",
+                  btn.variant === "contained"
+                    ? "linear-gradient(135deg, #F0C24B 0%, #D4A030 100%)"
+                    : "transparent",
+                backgroundImage:
+                  btn.variant === "contained"
+                    ? "linear-gradient(135deg, #F0C24B 0%, #D4A030 100%)"
+                    : "none",
                 textTransform: "none",
                 fontSize: "1rem",
                 "&:hover": {
                   backgroundColor:
                     btn.variant === "contained"
-                      ? "#0670d6"
-                      : "rgba(8, 132, 255, 0.05)",
+                      ? "#D4A537"
+                      : "rgba(212,165,55,0.1)",
+                  backgroundImage:
+                    btn.variant === "contained"
+                      ? "linear-gradient(135deg, #F0C24B 0%, #D4A030 100%)"
+                      : "none",
                 },
               }}
             >
@@ -108,7 +119,7 @@ export default function NavbarAuth() {
       {/* Dashboard link (auth-only) */}
       <Link
         href="/dashboard"
-        style={{ textDecoration: "none", color: "#0884ff" }}
+        style={{ textDecoration: "none", color: "#D4A537" }}
       >
         Dashboard
       </Link>
@@ -122,25 +133,26 @@ export default function NavbarAuth() {
           gap: 1.5,
           px: 2,
           py: 1,
-          backgroundColor: "rgba(8, 132, 255, 0.05)",
-          border: "1px solid rgba(8, 132, 255, 0.1)",
+          backgroundColor: "rgba(212,165,55,0.05)",
+          border: "1px solid rgba(212,165,55,0.12)",
           borderRadius: 2,
           cursor: "pointer",
           transition: "all 0.2s ease",
           "&:hover": {
-            backgroundColor: "rgba(8, 132, 255, 0.1)",
-            border: "1px solid rgba(8, 132, 255, 0.2)",
+            backgroundColor: "rgba(212,165,55,0.1)",
+            border: "1px solid rgba(212,165,55,0.25)",
           },
         }}
       >
         <Avatar
           src={user?.user_metadata?.avatar_url || undefined}
           sx={{
-            bgcolor: "#0884ff",
+            bgcolor: "#D4A537",
             width: 40,
             height: 40,
             fontSize: "1rem",
             fontWeight: "bold",
+            color: "#0A0F1C",
           }}
         >
           {user?.email?.charAt(0).toUpperCase()}
@@ -150,7 +162,7 @@ export default function NavbarAuth() {
             sx={{
               fontSize: "0.9rem",
               fontWeight: 600,
-              color: "#111827",
+              color: "#F5F3EE",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -162,7 +174,7 @@ export default function NavbarAuth() {
             <Typography
               sx={{
                 fontSize: "0.75rem",
-                color: "#0884ff",
+                color: "#D4A537",
                 fontWeight: 600,
                 textTransform: "capitalize",
               }}
@@ -184,7 +196,9 @@ export default function NavbarAuth() {
           sx: {
             minWidth: 280,
             mt: 1,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            backgroundColor: "#0D1321",
+            border: "1px solid rgba(212,165,55,0.12)",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
           },
         }}
       >
@@ -196,22 +210,37 @@ export default function NavbarAuth() {
               component={Link}
               href={item.href}
               onClick={handleMenuClose}
-              sx={{ fontSize: "0.9rem" }}
+              sx={{
+                fontSize: "0.9rem",
+                color: "#F5F3EE",
+                py: 1.25,
+                "&:hover": {
+                  backgroundColor: "rgba(212,165,55,0.08)",
+                  color: "#D4A537",
+                },
+              }}
             >
-              <Icon style={{ marginRight: "12px" }} size={18} />
+              <Icon
+                style={{ marginRight: "12px", color: "inherit" }}
+                size={18}
+              />
               {item.label}
             </MenuItem>
           );
         })}
 
-        <Divider sx={{ my: 1 }} />
+        <Divider sx={{ my: 1, backgroundColor: "rgba(212,165,55,0.1)" }} />
 
         <MenuItem
           onClick={handleLogout}
           sx={{
-            color: "#d32f2f",
+            color: "#ef4444",
             fontSize: "0.9rem",
-            "&:hover": { backgroundColor: "rgba(211, 47, 47, 0.05)" },
+            py: 1.25,
+            "&:hover": {
+              backgroundColor: "rgba(239, 68, 68, 0.08)",
+              color: "#ef4444",
+            },
           }}
         >
           <FiLogOut style={{ marginRight: "12px" }} size={18} />

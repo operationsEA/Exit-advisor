@@ -1,6 +1,5 @@
-import { AppBar, Toolbar, Box } from "@mui/material";
+import { AppBar, Toolbar, Box, Typography } from "@mui/material";
 import Link from "next/link";
-import Image from "next/image";
 import NavbarAuth from "./NavbarAuth";
 import MobileNavbarAuth from "./MobileNavbarAuth";
 
@@ -15,9 +14,11 @@ export default function Navbar() {
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: "#ffffff",
-        color: "#0884ff",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+        backgroundColor: "#0D1321",
+        color: "#D4A537",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+        borderBottom: "1px solid rgba(212,165,55,0.08)",
+        borderRadius: 0,
       }}
     >
       <Box
@@ -44,17 +45,21 @@ export default function Navbar() {
               textDecoration: "none",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
             }}
           >
-            <Image
-              src="/logo.png"
-              alt="BizForSale Logo"
-              width={32}
-              height={32}
-              priority
-              style={{ height: "auto" }}
-            />
+            <Typography
+              component="span"
+              sx={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontSize: "1.5rem",
+                fontWeight: 500,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              <span style={{ color: "#F5F3EE" }}>Biz</span>
+              <span style={{ color: "#F5F3EE" }}>forSale</span>
+              <span style={{ color: "#D4A537", fontStyle: "italic" }}>.io</span>
+            </Typography>
           </Link>
 
           {/* Desktop navigation (md and above) */}
@@ -69,7 +74,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                style={{ textDecoration: "none", color: "#0884ff" }}
+                style={{ textDecoration: "none", color: "#9CA3B5" }}
               >
                 {link.label}
               </Link>

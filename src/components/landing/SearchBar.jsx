@@ -42,16 +42,26 @@ export default function SearchBar() {
         size="medium"
         sx={{
           "& .MuiOutlinedInput-root": {
-            backgroundColor: "white",
+            backgroundColor: "#0D1321",
             fontSize: "1rem",
-            height: 48,
-            borderRadius: "8px",
+            height: 52,
+            borderRadius: "12px",
+            border: "1px solid #2A3447",
+            "&:hover": {
+              borderColor: "#D4A537",
+            },
+            "&.Mui-focused": {
+              borderColor: "#D4A537",
+            },
+          },
+          "& .MuiOutlinedInput-notchedOutline": {
+            border: "none",
           },
         }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <FiSearch size={20} style={{ color: "#6b7280" }} />
+              <FiSearch size={20} style={{ color: "#8B95A8" }} />
             </InputAdornment>
           ),
         }}
@@ -61,13 +71,19 @@ export default function SearchBar() {
         variant="contained"
         size="large"
         sx={{
-          backgroundColor: "#0884ff",
-          color: "white",
+          background: "linear-gradient(135deg, #F0C24B 0%, #D4A030 100%)",
+          color: "#0A0F1C",
           textTransform: "none",
           fontSize: "1rem",
-          padding: "0 28px",
+          fontWeight: 700,
+          padding: "0 32px",
           whiteSpace: "nowrap",
-          "&:hover": { backgroundColor: "#0670d6" },
+          borderRadius: "100px",
+          height: 52,
+          boxShadow: "0 4px 16px rgba(212,165,55,0.25)",
+          "&:hover": {
+            boxShadow: "0 6px 20px rgba(212,165,55,0.35)",
+          },
         }}
       >
         Search

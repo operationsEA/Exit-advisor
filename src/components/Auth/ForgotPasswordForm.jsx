@@ -82,7 +82,7 @@ export default function ForgotPasswordForm() {
         InputProps={{
           startAdornment: (
             <FiMail
-              style={{ marginRight: "8px", color: "#0884ff", fontSize: "18px" }}
+              style={{ marginRight: "8px", color: "#D4A537", fontSize: "18px" }}
             />
           ),
         }}
@@ -93,9 +93,13 @@ export default function ForgotPasswordForm() {
         variant="contained"
         size="small"
         sx={{
-          backgroundColor: "#0884ff",
+          background: "linear-gradient(135deg, #F0C24B 0%, #D4A030 100%)",
+          color: "#0A0F1C",
+          fontWeight: 700,
           py: 1,
-          "&:hover": { backgroundColor: "#0670d6" },
+          "&:hover": {
+            background: "linear-gradient(135deg, #F0C24B 0%, #D4A030 100%)",
+          },
         }}
         onClick={handleResetRequest}
         disabled={loading}
@@ -114,7 +118,7 @@ export default function ForgotPasswordForm() {
       >
         <Link
           href="/auth/login"
-          style={{ color: "#0884ff", textDecoration: "none" }}
+          style={{ color: "#D4A537", textDecoration: "none" }}
         >
           Back to Sign In
         </Link>

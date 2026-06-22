@@ -1,20 +1,8 @@
 "use client";
 
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  Link as MuiLink,
-} from "@mui/material";
+import { Box, Container, Grid, Typography } from "@mui/material";
 import Link from "next/link";
-import {
-  FiBriefcase,
-  FiFacebook,
-  FiTwitter,
-  FiLinkedin,
-  FiInstagram,
-} from "react-icons/fi";
+import { FiBriefcase } from "react-icons/fi";
 
 import { usePathname } from "next/navigation";
 
@@ -50,47 +38,17 @@ export default function Footer() {
           {/* Company Info */}
           <Grid item xs={12} sm={6} md={3}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-              <FiBriefcase size={24} color="#0884ff" />
+              <FiBriefcase size={24} color="#D4A537" />
               <Typography
                 variant="h6"
-                sx={{ color: "#f3f4f6", fontWeight: "bold" }}
+                sx={{ color: "#F5F3EE", fontWeight: "bold" }}
               >
                 BizForSale.io
               </Typography>
             </Box>
-            <Typography variant="body2" sx={{ color: "#9ca3af", mb: 3 }}>
+            <Typography variant="body2" sx={{ color: "#8B95A8", mb: 3 }}>
               The trusted marketplace for buying and selling businesses online.
             </Typography>
-            {/* <Box sx={{ display: "flex", gap: 2 }}>
-              <MuiLink
-                href="#"
-                target="_blank"
-                sx={{ color: "#0884ff", "&:hover": { color: "#22bfa3" } }}
-              >
-                <FiFacebook size={20} />
-              </MuiLink>
-              <MuiLink
-                href="#"
-                target="_blank"
-                sx={{ color: "#0884ff", "&:hover": { color: "#22bfa3" } }}
-              >
-                <FiTwitter size={20} />
-              </MuiLink>
-              <MuiLink
-                href="#"
-                target="_blank"
-                sx={{ color: "#0884ff", "&:hover": { color: "#22bfa3" } }}
-              >
-                <FiLinkedin size={20} />
-              </MuiLink>
-              <MuiLink
-                href="#"
-                target="_blank"
-                sx={{ color: "#0884ff", "&:hover": { color: "#22bfa3" } }}
-              >
-                <FiInstagram size={20} />
-              </MuiLink>
-            </Box> */}
           </Grid>
 
           {/* Quick Links */}
@@ -108,7 +66,7 @@ export default function Footer() {
               >
                 <Typography
                   variant="body2"
-                  sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
+                  sx={{ color: "#8B95A8", "&:hover": { color: "#D4A537" } }}
                 >
                   All Businesses
                 </Typography>
@@ -116,69 +74,29 @@ export default function Footer() {
               <Link href="/dashboard" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
-                  sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
+                  sx={{ color: "#8B95A8", "&:hover": { color: "#D4A537" } }}
                 >
                   Sell Your Business
-                </Typography>
-              </Link>
-              <Link href="#" style={{ textDecoration: "none" }}>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
-                >
-                  Pricing
-                </Typography>
-              </Link>
-              <Link href="#" style={{ textDecoration: "none" }}>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
-                >
-                  FAQ
                 </Typography>
               </Link>
             </Box>
           </Grid>
 
-          {/* Company */}
+          {/* Resources */}
           <Grid item xs={12} sm={6} md={3}>
             <Typography
               variant="h6"
               sx={{ color: "#f3f4f6", fontWeight: "bold", mb: 2 }}
             >
-              Company
+              Resources
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Link href="#" style={{ textDecoration: "none" }}>
+              <Link href="/blogs" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
-                  sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
+                  sx={{ color: "#8B95A8", "&:hover": { color: "#D4A537" } }}
                 >
-                  About Us
-                </Typography>
-              </Link>
-              <Link href="#" style={{ textDecoration: "none" }}>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
-                >
-                  Blog
-                </Typography>
-              </Link>
-              <Link href="#" style={{ textDecoration: "none" }}>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
-                >
-                  Contact
-                </Typography>
-              </Link>
-              <Link href="#" style={{ textDecoration: "none" }}>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
-                >
-                  Careers
+                  Acquisition Education
                 </Typography>
               </Link>
             </Box>
@@ -196,7 +114,7 @@ export default function Footer() {
               <Link href="#" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
-                  sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
+                  sx={{ color: "#8B95A8", "&:hover": { color: "#D4A537" } }}
                 >
                   Privacy Policy
                 </Typography>
@@ -204,17 +122,9 @@ export default function Footer() {
               <Link href="#" style={{ textDecoration: "none" }}>
                 <Typography
                   variant="body2"
-                  sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
+                  sx={{ color: "#8B95A8", "&:hover": { color: "#D4A537" } }}
                 >
                   Terms of Service
-                </Typography>
-              </Link>
-              <Link href="#" style={{ textDecoration: "none" }}>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "#9ca3af", "&:hover": { color: "#0884ff" } }}
-                >
-                  Cookie Policy
                 </Typography>
               </Link>
             </Box>
@@ -233,10 +143,10 @@ export default function Footer() {
             gap: 2,
           }}
         >
-          <Typography variant="body2" sx={{ color: "#6b7280" }}>
+          <Typography variant="body2" sx={{ color: "#8B95A8" }}>
             © {currentYear} BizForSale.io. All rights reserved.
           </Typography>
-          <Typography variant="body2" sx={{ color: "#6b7280" }}>
+          <Typography variant="body2" sx={{ color: "#8B95A8" }}>
             Made with ❤️ for entrepreneurs and business buyers
           </Typography>
         </Box>

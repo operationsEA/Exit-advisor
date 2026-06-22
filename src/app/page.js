@@ -1,5 +1,6 @@
 import HeroSection from "@/components/landing/HeroSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
+import HowItWorksSection from "@/components/landing/HowItWorksSection";
 
 const SITE_URL = "https://bizforsale.io";
 
@@ -57,7 +58,8 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       <HeroSection />
-      <FeaturesSection />
+      <HowItWorksSection />
+      {/* <FeaturesSection /> */}
     </main>
   );
 }

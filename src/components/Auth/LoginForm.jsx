@@ -111,8 +111,8 @@ export default function LoginForm() {
           display: "flex",
           gap: 2,
           "&:hover": {
-            borderColor: "#0884ff",
-            backgroundColor: "rgba(8, 132, 255, 0.05)",
+            borderColor: "#D4A537",
+            backgroundColor: "rgba(212,165,55,0.05)",
           },
         }}
         onClick={handleGoogleSignIn}
@@ -145,7 +145,7 @@ export default function LoginForm() {
         InputProps={{
           startAdornment: (
             <FiMail
-              style={{ marginRight: "8px", color: "#0884ff", fontSize: "18px" }}
+              style={{ marginRight: "8px", color: "#D4A537", fontSize: "18px" }}
             />
           ),
         }}
@@ -165,7 +165,7 @@ export default function LoginForm() {
         InputProps={{
           startAdornment: (
             <FiLock
-              style={{ marginRight: "8px", color: "#0884ff", fontSize: "18px" }}
+              style={{ marginRight: "8px", color: "#D4A537", fontSize: "18px" }}
             />
           ),
           endAdornment: (
@@ -187,7 +187,7 @@ export default function LoginForm() {
         sx={{
           display: "block",
           mb: 2,
-          color: "#0884ff",
+          color: "#D4A537",
           textAlign: "right",
           fontSize: "0.75rem",
         }}
@@ -195,7 +195,7 @@ export default function LoginForm() {
         <a
           href="/auth/forgot-password"
           style={{
-            color: "#0884ff",
+            color: "#D4A537",
             textDecoration: "none",
             fontWeight: "bold",
           }}
@@ -210,12 +210,15 @@ export default function LoginForm() {
         variant="contained"
         size="small"
         sx={{
-          backgroundColor: "#0884ff",
-          color: "white",
+          background: "linear-gradient(135deg, #F0C24B 0%, #D4A030 100%)",
+          color: "#0A0F1C",
           textTransform: "none",
           fontSize: "0.9rem",
+          fontWeight: 700,
           py: 1,
-          "&:hover": { backgroundColor: "#0670d6" },
+          "&:hover": {
+            background: "linear-gradient(135deg, #F0C24B 0%, #D4A030 100%)",
+          },
         }}
         disabled={loading}
       >
@@ -236,7 +239,7 @@ export default function LoginForm() {
         <a
           href="/auth/signup"
           style={{
-            color: "#0884ff",
+            color: "#D4A537",
             textDecoration: "none",
             fontWeight: "bold",
           }}

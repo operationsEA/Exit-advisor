@@ -4,14 +4,68 @@ import SearchBar from "./SearchBar";
 
 export default function HeroSection() {
   return (
-    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 px-4 py-20">
-      <div className="max-w-4xl mx-auto text-center">
-        <h1 className="text-5xl md:text-7xl font-bold text-neutral-900 mb-6 leading-tight">
-          Buy & Sell Businesses with{" "}
-          <span className="text-primary-600">Confidence</span>
+    <section
+      className="min-h-screen flex items-center justify-center px-4 py-20"
+      style={{
+        background:
+          "radial-gradient(ellipse at 50% 100%, rgba(212,165,55,0.12) 0%, transparent 60%), radial-gradient(ellipse at 20% 30%, rgba(212,165,55,0.04) 0%, transparent 40%), linear-gradient(180deg, #0A0F1C 0%, #0D1321 50%, #0F1729 100%)",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Decorative contour lines */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "300px",
+          background:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 300'%3E%3Cpath d='M0,200 C200,150 400,250 600,180 C800,110 1000,200 1200,160 L1200,300 L0,300 Z' fill='none' stroke='rgba(212,165,55,0.06)' stroke-width='2'/%3E%3Cpath d='M0,240 C200,200 400,280 600,220 C800,160 1000,240 1200,200 L1200,300 L0,300 Z' fill='none' stroke='rgba(212,165,55,0.04)' stroke-width='1.5'/%3E%3C/svg%3E\") center bottom no-repeat",
+          backgroundSize: "cover",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div
+        className="max-w-4xl mx-auto text-center"
+        style={{ position: "relative", zIndex: 1 }}
+      >
+        <h1
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: "clamp(2.5rem, 5vw, 4.5rem)",
+            fontWeight: 500,
+            color: "#F5F3EE",
+            marginBottom: "1.5rem",
+            lineHeight: 1.15,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Businesses for Sale <br />
+          <span
+            style={{
+              background: "linear-gradient(135deg, #F0C24B, #D4A537)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            Buy or Sell a Business Free
+          </span>
         </h1>
 
-        <p className="text-lg md:text-xl text-neutral-600 mb-8 max-w-2xl mx-auto">
+        <p
+          style={{
+            fontSize: "clamp(1rem, 2vw, 1.25rem)",
+            color: "#9CA3B5",
+            marginBottom: "2.5rem",
+            maxWidth: "600px",
+            marginLeft: "auto",
+            marginRight: "auto",
+            lineHeight: 1.6,
+          }}
+        >
           BizForSale.io connects serious buyers and sellers. Discover vetted
           business opportunities, connect with qualified investors, and close
           deals faster.
@@ -26,11 +80,18 @@ export default function HeroSection() {
               variant="contained"
               size="large"
               sx={{
-                backgroundColor: "#0884ff",
+                background: "linear-gradient(135deg, #F0C24B 0%, #D4A030 100%)",
+                color: "#0A0F1C",
                 textTransform: "none",
                 fontSize: "1.1rem",
-                padding: "12px 32px",
-                "&:hover": { backgroundColor: "#0670d6" },
+                fontWeight: 700,
+                padding: "14px 36px",
+                borderRadius: "100px",
+                boxShadow: "0 4px 20px rgba(212,165,55,0.3)",
+                "&:hover": {
+                  boxShadow: "0 6px 28px rgba(212,165,55,0.45)",
+                  transform: "translateY(-2px)",
+                },
               }}
             >
               Browse Businesses
@@ -41,33 +102,25 @@ export default function HeroSection() {
               variant="outlined"
               size="large"
               sx={{
-                borderColor: "#0884ff",
-                color: "#0884ff",
+                borderColor: "rgba(212,165,55,0.5)",
+                color: "#D4A537",
                 textTransform: "none",
                 fontSize: "1.1rem",
-                padding: "12px 32px",
-                "&:hover": { backgroundColor: "rgba(8, 132, 255, 0.05)" },
+                fontWeight: 600,
+                padding: "14px 36px",
+                borderRadius: "100px",
+                borderWidth: "2px",
+                "&:hover": {
+                  borderColor: "#D4A537",
+                  backgroundColor: "rgba(212,165,55,0.08)",
+                  borderWidth: "2px",
+                },
               }}
             >
               List Your Business
             </Button>
           </Link>
         </div>
-
-        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 pt-12 border-t border-neutral-200">
-          <div>
-            <p className="text-4xl font-bold text-primary-600 mb-2">500+</p>
-            <p className="text-neutral-600">Active Listings</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-secondary-600 mb-2">10K+</p>
-            <p className="text-neutral-600">Verified Buyers</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-success-600 mb-2">$2.5B+</p>
-            <p className="text-neutral-600">Total Deal Value</p>
-          </div>
-        </div> */}
       </div>
     </section>
   );

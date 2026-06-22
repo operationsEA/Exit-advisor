@@ -4,9 +4,10 @@ import { createTheme } from "@mui/material/styles";
 import colors from "./colors";
 import typography from "./typography";
 
-// Create Material-UI Theme
+// Create Material-UI Theme — Light theme with blue primary
 const muiTheme = createTheme({
   palette: {
+    mode: "light",
     primary: {
       main: colors.primary[500],
       light: colors.primary[300],

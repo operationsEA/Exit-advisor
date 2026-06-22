@@ -64,11 +64,11 @@ export default function SignupRight() {
               onDelete={() => setSelectedRole("")}
               size="small"
               sx={{
-                backgroundColor: "#f0f7ff",
-                color: "#0884ff",
+                backgroundColor: "rgba(212,165,55,0.1)",
+                color: "#D4A537",
                 fontWeight: "bold",
                 "& .MuiChip-deleteIcon": {
-                  color: "#0884ff",
+                  color: "#D4A537",
                 },
               }}
             />
@@ -78,7 +78,7 @@ export default function SignupRight() {
                 color: "#9ca3af",
                 cursor: "pointer",
                 textDecoration: "underline",
-                "&:hover": { color: "#0884ff" },
+                "&:hover": { color: "#D4A537" },
               }}
               onClick={() => setSelectedRole("")}
             >

@@ -52,14 +52,15 @@ export default function RoleSelector({ selectedRole, onRoleChange }) {
               sx={{
                 p: 2,
                 border: "2px solid",
-                borderColor: selectedRole === role.id ? "#0884ff" : "#e5e7eb",
+                borderColor: selectedRole === role.id ? "#D4A537" : "#e5e7eb",
                 borderRadius: "8px",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
-                backgroundColor: selectedRole === role.id ? "#f0f7ff" : "#fff",
+                backgroundColor:
+                  selectedRole === role.id ? "rgba(212,165,55,0.08)" : "#fff",
                 "&:hover": {
-                  borderColor: "#0884ff",
-                  backgroundColor: "#f0f7ff",
+                  borderColor: "#D4A537",
+                  backgroundColor: "rgba(212,165,55,0.05)",
                 },
               }}
             >
@@ -69,9 +70,9 @@ export default function RoleSelector({ selectedRole, onRoleChange }) {
                   <Radio
                     size="small"
                     sx={{
-                      color: "#0884ff",
+                      color: "#D4A537",
                       "&.Mui-checked": {
-                        color: "#0884ff",
+                        color: "#D4A537",
                       },
                     }}
                   />
@@ -97,9 +98,9 @@ export default function RoleSelector({ selectedRole, onRoleChange }) {
                         mt: 0.75,
                         px: 1.5,
                         py: 0.25,
-                        backgroundColor: "#f3f4f6",
+                        backgroundColor: "rgba(212,165,55,0.08)",
                         borderRadius: "4px",
-                        color: "#0884ff",
+                        color: "#D4A537",
                         fontWeight: "500",
                         fontSize: "0.7rem",
                       }}

@@ -49,7 +49,7 @@ export default function MobileNavbarAuth({ staticLinks }) {
 
   return (
     <>
-      <IconButton onClick={() => setOpen(true)} sx={{ color: "#0884ff", p: 1 }}>
+      <IconButton onClick={() => setOpen(true)} sx={{ color: "#D4A537", p: 1 }}>
         <FiMenu size={24} />
       </IconButton>
 
@@ -58,7 +58,12 @@ export default function MobileNavbarAuth({ staticLinks }) {
         open={open}
         onClose={close}
         PaperProps={{
-          sx: { width: 280, display: "flex", flexDirection: "column" },
+          sx: {
+            width: 280,
+            display: "flex",
+            flexDirection: "column",
+            backgroundColor: "#0D1321",
+          },
         }}
       >
         {/* Header */}
@@ -72,11 +77,11 @@ export default function MobileNavbarAuth({ staticLinks }) {
           }}
         >
           <Typography
-            sx={{ fontWeight: 700, color: "#111827", fontSize: "1rem" }}
+            sx={{ fontWeight: 700, color: "#F5F3EE", fontSize: "1rem" }}
           >
             Menu
           </Typography>
-          <IconButton onClick={close} size="small" sx={{ color: "#6b7280" }}>
+          <IconButton onClick={close} size="small" sx={{ color: "#8B95A8" }}>
             <FiX size={20} />
           </IconButton>
         </Box>
@@ -100,20 +105,21 @@ export default function MobileNavbarAuth({ staticLinks }) {
                 alignItems: "center",
                 gap: 1.5,
                 p: 1.5,
-                bgcolor: "rgba(8,132,255,0.05)",
-                border: "1px solid rgba(8,132,255,0.12)",
+                bgcolor: "rgba(212,165,55,0.05)",
+                border: "1px solid rgba(212,165,55,0.12)",
                 borderRadius: 2,
               }}
             >
               <Avatar
                 src={user?.user_metadata?.avatar_url || undefined}
                 sx={{
-                  bgcolor: "#0884ff",
+                  bgcolor: "#D4A537",
                   width: 40,
                   height: 40,
                   fontSize: "1rem",
                   fontWeight: 700,
                   flexShrink: 0,
+                  color: "#0A0F1C",
                 }}
               >
                 {user?.email?.charAt(0).toUpperCase()}
@@ -123,7 +129,7 @@ export default function MobileNavbarAuth({ staticLinks }) {
                   sx={{
                     fontWeight: 600,
                     fontSize: "0.875rem",
-                    color: "#111827",
+                    color: "#F5F3EE",
                   }}
                   noWrap
                 >
@@ -133,7 +139,7 @@ export default function MobileNavbarAuth({ staticLinks }) {
                   <Typography
                     sx={{
                       fontSize: "0.72rem",
-                      color: "#0884ff",
+                      color: "#D4A537",
                       fontWeight: 600,
                       textTransform: "capitalize",
                     }}
@@ -152,13 +158,13 @@ export default function MobileNavbarAuth({ staticLinks }) {
                 onClick={close}
                 variant="outlined"
                 sx={{
-                  borderColor: "#0884ff",
-                  color: "#0884ff",
+                  borderColor: "rgba(212,165,55,0.5)",
+                  color: "#D4A537",
                   textTransform: "none",
                   fontWeight: 500,
                   "&:hover": {
-                    bgcolor: "rgba(8,132,255,0.05)",
-                    borderColor: "#0670d6",
+                    bgcolor: "rgba(212,165,55,0.05)",
+                    borderColor: "#D4A537",
                   },
                 }}
               >
@@ -171,11 +177,15 @@ export default function MobileNavbarAuth({ staticLinks }) {
                 onClick={close}
                 variant="contained"
                 sx={{
-                  bgcolor: "#0884ff",
-                  color: "white",
+                  background:
+                    "linear-gradient(135deg, #F0C24B 0%, #D4A030 100%)",
+                  color: "#0A0F1C",
                   textTransform: "none",
                   fontWeight: 500,
-                  "&:hover": { bgcolor: "#0670d6" },
+                  "&:hover": {
+                    background:
+                      "linear-gradient(135deg, #F0C24B 0%, #D4A030 100%)",
+                  },
                 }}
               >
                 Get Started
@@ -200,12 +210,12 @@ export default function MobileNavbarAuth({ staticLinks }) {
                     px: 2.5,
                     py: 1.4,
                     gap: 1.5,
-                    color: "#374151",
+                    color: "#9CA3B5",
                     fontSize: "0.95rem",
                     fontWeight: 500,
                     "&:hover": {
-                      bgcolor: "rgba(8,132,255,0.05)",
-                      color: "#0884ff",
+                      bgcolor: "rgba(212,165,55,0.08)",
+                      color: "#D4A537",
                     },
                   }}
                 >
@@ -228,12 +238,12 @@ export default function MobileNavbarAuth({ staticLinks }) {
                   px: 2.5,
                   py: 1.4,
                   gap: 1.5,
-                  color: "#374151",
+                  color: "#9CA3B5",
                   fontSize: "0.95rem",
                   fontWeight: 500,
                   "&:hover": {
-                    bgcolor: "rgba(8,132,255,0.05)",
-                    color: "#0884ff",
+                    bgcolor: "rgba(212,165,55,0.08)",
+                    color: "#D4A537",
                   },
                 }}
               >

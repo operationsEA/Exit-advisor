@@ -121,8 +121,8 @@ export default function AuthForm({ selectedRole }) {
           display: "flex",
           gap: 2,
           "&:hover": {
-            borderColor: "#0884ff",
-            backgroundColor: "rgba(8, 132, 255, 0.05)",
+            borderColor: "#D4A537",
+            backgroundColor: "rgba(212,165,55,0.05)",
           },
         }}
         onClick={handleGoogleSignup}
@@ -154,7 +154,7 @@ export default function AuthForm({ selectedRole }) {
         InputProps={{
           startAdornment: (
             <FiMail
-              style={{ marginRight: "8px", color: "#0884ff", fontSize: "18px" }}
+              style={{ marginRight: "8px", color: "#D4A537", fontSize: "18px" }}
             />
           ),
         }}
@@ -173,7 +173,7 @@ export default function AuthForm({ selectedRole }) {
         InputProps={{
           startAdornment: (
             <FiMail
-              style={{ marginRight: "8px", color: "#0884ff", fontSize: "18px" }}
+              style={{ marginRight: "8px", color: "#D4A537", fontSize: "18px" }}
             />
           ),
         }}
@@ -192,7 +192,7 @@ export default function AuthForm({ selectedRole }) {
         InputProps={{
           startAdornment: (
             <FiLock
-              style={{ marginRight: "8px", color: "#0884ff", fontSize: "18px" }}
+              style={{ marginRight: "8px", color: "#D4A537", fontSize: "18px" }}
             />
           ),
           endAdornment: (
@@ -214,12 +214,15 @@ export default function AuthForm({ selectedRole }) {
         variant="contained"
         size="small"
         sx={{
-          backgroundColor: "#0884ff",
-          color: "white",
+          background: "linear-gradient(135deg, #F0C24B 0%, #D4A030 100%)",
+          color: "#0A0F1C",
           textTransform: "none",
           fontSize: "0.9rem",
+          fontWeight: 700,
           py: 1,
-          "&:hover": { backgroundColor: "#0670d6" },
+          "&:hover": {
+            background: "linear-gradient(135deg, #F0C24B 0%, #D4A030 100%)",
+          },
         }}
         onClick={handleSignupWithEmail}
         disabled={loading}
@@ -241,7 +244,7 @@ export default function AuthForm({ selectedRole }) {
         <a
           href="/auth/login"
           style={{
-            color: "#0884ff",
+            color: "#D4A537",
             textDecoration: "none",
             fontWeight: "bold",
           }}
